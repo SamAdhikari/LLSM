@@ -1,0 +1,11 @@
+Package: LLSM
+Type: Package
+Title: Package to Fit Longitudinal Latent Space Model
+Version: 0.1
+Date: 2015-09-01
+Author: Samrachana Adhikari
+Maintainer: Samrachana Adhikari <asamrach@andrew.cmu.edu>
+Description: Package to Fit LSM in Longitudinal Network Data
+License: GPL (>=2)
+Imports: Rcpp (>= 0.11.6),MASS, mvtnorm,igraph
+LinkingTo: Rcpp, RcppArmadillo

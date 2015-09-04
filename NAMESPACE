@@ -1,0 +1,9 @@
+useDynLib(LLSM)
+importFrom(Rcpp, evalCpp)
+importFrom(igraph, graph.adjacency)
+importFrom(igraph, shortest.paths)
+
+import("MASS",
+	"mvtnorm")
+
+exportPattern("^[[:alpha:]]+")
