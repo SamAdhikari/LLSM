@@ -78,21 +78,31 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
                         accZ=accZ,accInt=accInt,
                         tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B)  
     ##Procrustean transformation of latent positions
-    g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
-    ss = shortest.paths(g)
-    ss[ss > 4] = 4
-    Z0 = cmdscale(ss,k = 2)
-    C = (diag(nn[1]) - (1/nn[1]) * array(1, dim = c(nn[1],nn[1])))  ##Centering matrix
-    Z00 = C %*% Z0 ##target matrix    
+    C = lapply(1:TT,function(tt){
+	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
+	})
+
+    Z00 = lapply(1:TT,function(tt){
+        g = graph.adjacency(Y[[tt]]);
+        ss = shortest.paths(g);
+        ss[ss > 4] = 4;
+        Z0 = cmdscale(ss,k = dd);
+        return(C[[tt]]%*%Z0)})
+
+#   g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
+#    ss = shortest.paths(g)
+#    ss[ss > 4] = 4
+#    Z0 = cmdscale(ss,k = 2)
+#    Z00 = C %*% Z0 ##target matrix    
+
     Ztransformed = lapply(1:niter, function(ii) {lapply(1:TT,
-                                                        function(tt){z= rslt$draws$Z[[ii]][[tt]];
-                                                                     z = C%*%z;
-                                                                     pr = t(Z00)%*% z;
-                                                                     ssZ = svd(pr)
-                                                                     tx = ssZ$v%*%t(ssZ$u)
-                                                                     zfinal = z%*%tx
-                                                                     return(zfinal)})})
-    
+                                   function(tt){z= rslt$draws$Z[[ii]][[tt]];
+                                        	 z = C[[tt]]%*%z;
+                                                 pr = t(Z00[[tt]])%*% z;
+                                                ssZ = svd(pr)
+                                                tx = ssZ$v%*%t(ssZ$u)
+                                                zfinal = z%*%tx
+                                                return(zfinal)})})    
     rslt$draws$ZZ = Ztransformed
     rslt$call = match.call()
     rslt$tune = list(tuneZ = tuneZ, tuneInt = tuneInt)

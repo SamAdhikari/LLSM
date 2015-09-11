@@ -7,6 +7,7 @@ MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
         ss = shortest.paths(g);
         ss[ss > 4] = 4;
         Z0 = cmdscale(ss,k = dd);
+        dimnames(Z0)[[1]] = dimnames(Y[[tt]])[[1]];
         return(Z0)})
     ##Centering matrix
     C = (diag(nn[1]) - (1/nn[1]) * array(1, dim = c(nn[1],nn[1]))) 
@@ -16,19 +17,24 @@ MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
     InterceptFinal = rep(NA,niter)
     Likelihood = rep(NA,niter)
     ZVarFinal = list()    
-    llikOld = array(NA,dim=c(nn[1],TT))
+#    llikOld = array(NA,dim=c(nn[1],TT))
+    llikOld = list()
+    length(llikOld) = TT
     for(iter in 1:niter){
         #update Z
-        for(i in 1:nn[1]){
-            llikOld[i,] = sapply(1:TT,function(x) likelihoodi(i,Y[[x]],Z[[x]],Intercept))
-        }
+        llikOld = lapply(1:TT,function(x){
+             sapply(1:nn[x],function(y) likelihoodi(y,dd,nn[x],Y[[x]],Z[[x]],Intercept))           
+        })
         Zupdt = ZupdateRW(Y=Y,Z=Z,TT=TT,Intercept=Intercept,dd=dd,
                         var=VarZ,llikOld=llikOld,acc=accZ,tune=tuneZ)
         Z = Zupdt$Z
         accZ = Zupdt$acc
-        llikAll = sum(sapply(1:TT,function(x) likelihood(Y[[x]],Z[[x]],Intercept)))
+        llikAll =  sum(sapply(1:TT,function(x){
+            FullLogLik(Y[[x]],Z[[x]],Intercept,nn[x],dd)}))
         Intupdt = InterceptupdateRW(Intercept=Intercept,llikAll=llikAll,
-                              MuBeta=MuInt,VarBeta=VarInt,tune=tuneInt,acc=accInt,Y=Y,Z=Z,TT=TT)
+                              MuBeta=MuInt,VarBeta=VarInt,tune=tuneInt,
+				acc=accInt,Y=Y,Z=Z,TT=TT,
+				nn=nn,dd=dd)
         Intercept = Intupdt$Intercept
         accInt = Intupdt$acc
         llikAll = Intupdt$llikAll
@@ -46,4 +52,5 @@ MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
     acc = list(accZ=accZ,accInt=accInt)
     return(list(draws=draws,acc=acc))
 }
+
 
