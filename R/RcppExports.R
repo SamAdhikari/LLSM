@@ -41,3 +41,7 @@ ZupdateTT <- function(Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, a
     .Call('LLSM_ZupdateTT', PACKAGE = 'LLSM', Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet)
 }
 
+ZupdateLSM <- function(Y, Z, Intercept, dd, nn, var, llikOld, acc, tune) {
+    .Call('LLSM_ZupdateLSM', PACKAGE = 'LLSM', Y, Z, Intercept, dd, nn, var, llikOld, acc, tune)
+}
+

@@ -401,7 +401,71 @@ List ZupdateTT(arma::mat Yt,arma::mat Zt, arma::mat ZPrev, int TT,
 
 
 
+//Function to update latent space positions for LSM
 
+
+// [[Rcpp::export]]
+List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
+            int nn,arma::mat var,
+            arma::vec llikOld,arma::vec acc,arma::vec tune)
+{
+        arma::vec Zsm(dd);
+        arma::vec Znewsm(dd);
+        arma::vec ZsmPrev(dd);
+        double prior;
+        double priorNew;
+        double llikNew;
+        double logratio;
+    // print(var0)
+        arma::mat Znew(&Z[0],nn,dd);
+        arma::mat Znewt = Znew.t();//matrix to store updated values         
+        arma::mat Ztt = Z.t();
+         //update for t = 1
+            //update Z_t by row    
+            for(int i=0; i < nn; i ++){
+                Zsm = Ztt.col(i);
+              //  Zsmt.print("Zsmt: ");
+             //   Zsmt.print();
+             //   ZsmNext.print();
+                ZsmPrev = arma::zeros<arma::vec>(dd);
+            //    ZsmPrev.print(); 
+                //prior density at current values
+                prior = logdmvnorm(Zsm,ZsmPrev,var,dd);
+                // Rprintf("pO1 %f",prior1);
+//                Rprintf("pO2 %f",prior2);
+                //propose new vector
+                for(int ww = 0 ; ww < dd ; ww++){ 
+                     Znewsm(ww) = Zsm(ww) + tune(i)*rnorm(1,0.0,1.0)[0];
+                 }	
+            //    Znewsm.print("Znewsm: ");
+                Znewt.col(i) = Znewsm;
+         //       Znew.print();
+                //prior density at proposed values
+           //     meanNew2.print();
+                priorNew =  logdmvnorm(Znewsm,ZsmPrev,var,dd);
+                llikNew = likelihoodi((i+1),dd,nn,Y,Znewt.t(),Intercept);
+                //compute log acceptance ratio
+                double ll = llikOld(i);
+                logratio = llikNew-ll+priorNew-prior;
+          //      Rprintf("logratio %f",logratio);
+                if(log(runif(1,0.0,1.0)[0]) < logratio){
+            //            Rprintf("step %f",1.0);
+                        Ztt.col(i) = Znewsm; //move to proposed values
+                        acc(i) = acc(i)+1; //update acceptance
+                        llikOld(i) = llikNew; //update the likelihood matrix
+                    }else{
+                //        Rprintf("step %f",1.0);
+                        Znewt.col(i) = Zsm;
+                        
+                        } //otherwise stay at current state
+            }
+       Z = Ztt.t();
+       List rslt(3);
+       rslt(0) = Z;
+       rslt(1) = acc;
+       rslt(2) = llikOld;
+       return(rslt);
+}
 
 
 

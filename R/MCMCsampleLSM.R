@@ -19,10 +19,11 @@ MCMCsampleLSM = function(niter,Y,Z,Intercept,dd,MuInt,VarInt,VarZ,Psi,
     for(iter in 1:niter){
         #update Z
         llikOldZ = sapply(1:nn,function(x)likelihoodi(x,dd,nn,Y,Z,Intercept))
-        Zupdt = ZupdateLSM(Y=Y,Z=Z,Intercept=Intercept,dd=dd,
+        Zupdt = ZupdateLSM(Y=Y,Z=Z,Intercept=Intercept,dd=dd,nn =nn,
                         var=VarZ,llikOld=llikOldZ,acc=accZ,tune=tuneZ)
-        Z = Zupdt$Z
-        accZ = Zupdt$acc
+	Zupdt = ZupdateLSM
+        Z = Zupdt[[1]]
+        accZ = Zupdt[[2]]
         llikAll = FullLogLik(Y,Z,Intercept,nn,dd)
         #update intercept
         Intupdt = InterceptupdateLSM(Intercept=Intercept,llikAll=llikAll,
