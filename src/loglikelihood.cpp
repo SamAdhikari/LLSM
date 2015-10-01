@@ -45,10 +45,10 @@ double logitInverse(double x){
     return 1.0/(1.0 + exp(-1.0 * x));
 }
 
+
 // [[Rcpp::export]]
-double FullLogLik(arma::vec YY, arma::mat ZZ, 
+double FullLogLik(arma::mat YY, arma::mat ZZ, 
     double intercept,int nn,int dd){
-  //  arma::mat dMat(nn,nn);
 	arma::mat dMat = distMat(nn,dd,ZZ);
 	double total = 0.0;
 	double tmp1,tmp2;
@@ -58,25 +58,51 @@ double FullLogLik(arma::vec YY, arma::mat ZZ,
     		double vv2 = (intercept - dMat(jj,ii));
 			tmp1 = logitInverse(vv1);
 			tmp2 = logitInverse(vv2);
-			if(YY(jj*nn + ii) == 1){
+			if(YY(ii,jj) == 1){
 				total = total + log(tmp1);
-			}else if(YY(jj*nn + ii) == 0){
+			}else if(YY(ii,jj) == 0){
 				total = total + log(1.0 - tmp1);
 			}
-			if(YY(jj + ii*nn) == 1){
+			if(YY(jj,ii) == 1){
 				total = total + log(tmp2);
-			}else if(YY(jj + ii*nn) == 0){
+			}else if(YY(jj,ii) == 0){
 				total = total + log(1.0 - tmp2);
 			}
 		}		
 	}
 	return total;
-	//delete[] dMat;
-    }
+}
     
+//// [[Rcpp::export]]
+//double FullLogLik(arma::vec YY, arma::mat ZZ, 
+//    double intercept,int nn,int dd){
+  //  arma::mat dMat(nn,nn);
+//	arma::mat dMat = distMat(nn,dd,ZZ);
+//	double total = 0.0;
+//	double tmp1,tmp2;
+//	for(int ii = 1; ii < nn; ii++){ //we exclude diagonal elements
+//		for(int jj = 0; jj < ii; jj++){
+//            double vv1 = (intercept - dMat(ii,jj)); 
+//    		double vv2 = (intercept - dMat(jj,ii));
+//			tmp1 = logitInverse(vv1);
+//			tmp2 = logitInverse(vv2);
+//			if(YY(jj*nn + ii) == 1){
+//				total = total + log(tmp1);
+//			}else if(YY(jj*nn + ii) == 0){
+//				total = total + log(1.0 - tmp1);
+//			}
+//			if(YY(jj + ii*nn) == 1){
+//				total = total + log(tmp2);
+//			}else if(YY(jj + ii*nn) == 0){
+//				total = total + log(1.0 - tmp2);
+//			}
+//		}		
+//	}
+//	return total;
+//	//delete[] dMat;
+  //  }
     
-    
-    
+            
 // [[Rcpp::export]]
 double likelihoodi(int ii,int dd,int nn, arma::mat Yt,
     arma::mat Zt,double intercept)
@@ -400,11 +426,27 @@ List ZupdateTT(arma::mat Yt,arma::mat Zt, arma::mat ZPrev, int TT,
     
 
 
+// // **   ///////////////////////
 
-//Function to update latent space positions for LSM
+
+/*		Functions for LSM
+ */
+
+double logdnormCpp(double x, double mu, double sigma) {
+    double d = (x - mu)/sigma;
+    double ret = -log(sqrt(2*PI)*sigma) + (-0.5*d);
+   return(ret);
+}
 
 
-// [[Rcpp::export]]
+//Compute logpriors 
+double LogpriorBeta(double Beta, double MuBeta,double SigmaBeta)
+{
+    double sigma = sqrt(SigmaBeta);    
+    double val = logdnormCpp(Beta, MuBeta, sigma);
+    return val;
+}
+
 List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
             int nn,arma::mat var,
             arma::vec llikOld,arma::vec acc,arma::vec tune)
@@ -423,10 +465,7 @@ List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
          //update for t = 1
             //update Z_t by row    
             for(int i=0; i < nn; i ++){
-                Zsm = Ztt.col(i);
-              //  Zsmt.print("Zsmt: ");
-             //   Zsmt.print();
-             //   ZsmNext.print();
+                Zsm = Ztt.col(i); 
                 ZsmPrev = arma::zeros<arma::vec>(dd);
             //    ZsmPrev.print(); 
                 //prior density at current values
@@ -436,7 +475,7 @@ List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
                 //propose new vector
                 for(int ww = 0 ; ww < dd ; ww++){ 
                      Znewsm(ww) = Zsm(ww) + tune(i)*rnorm(1,0.0,1.0)[0];
-                 }	
+                 }    
             //    Znewsm.print("Znewsm: ");
                 Znewt.col(i) = Znewsm;
          //       Znew.print();
@@ -460,15 +499,108 @@ List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
                         } //otherwise stay at current state
             }
        Z = Ztt.t();
-       List rslt(3);
-       rslt(0) = Z;
-       rslt(1) = acc;
-       rslt(2) = llikOld;
-       return(rslt);
+       return List::create(
+           _["Z"] = Z,
+           _["acc"] = acc,
+           _["llikOld"] = llikOld
+           );
 }
 
 
+//update intercept
+List updateInterceptLSM(arma::mat Y,arma::mat Z,int nn,
+    int dd, double Intercept, double mu,double sigmasq,
+    double tuneInt,double llik,int acc){
+    double intnew;
+	double lpIntnew;
+	double llikIntnew;
+    double lpInt;
+    lpInt = LogpriorBeta(Intercept,mu,sigmasq);
+    intnew = Intercept + tuneInt*rnorm(1,0.0,1.0)[0];
+    lpIntnew = LogpriorBeta(intnew, mu,sigmasq);
+    llikIntnew = FullLogLik(Y,Z,intnew,nn,dd);
+	double logratio = lpIntnew-lpInt+llikIntnew-llik;
+	if(log(runif(1,0.0,1.0)[0]) < logratio){
+		Intercept = intnew;
+		llik = llikIntnew;
+		acc = acc + 1;    
+	}
+    return List::create(
+        _["Intercept"] = Intercept,
+        _["acc"] = acc,
+        _["llik"] =llik
+       );
+}
 
+
+// [[Rcpp::export]]
+List MCMCcppLSM(arma::mat Y,arma::mat Z,double Intercept,int nn,int dd,int niter,
+        double tuneInt, arma::vec tuneZ, int accInt, arma::vec accZ,
+        double MuInt, double VarInt, arma::mat VarZ, double A, double B)
+{
+    arma::vec llikOldZ(nn);
+    arma::vec D(dd);
+    List Zupdt;
+    List Intupdt;
+    arma::vec InterceptFinal(niter);
+    List ZFinal(niter);
+    List ZVarFinal(niter);
+    arma::vec Likelihood(niter);        
+    for(int iter =0; iter< niter; iter ++)
+    {
+        for(int ii = 0; ii < nn; ii ++)
+        {
+            double ll = likelihoodi((ii+1),dd,nn,Y,Z,Intercept);
+            llikOldZ(ii) = ll;
+        }
+        
+        Zupdt = ZupdateLSM(Y,Z,Intercept,dd,nn,VarZ,llikOldZ,accZ,tuneZ);        
+        arma::mat Zint = Zupdt["Z"];        
+        arma::vec accZint = Zupdt["acc"];
+        arma::mat Ztr = Z.t();
+        arma::mat ZintTr = Zint.t();
+        //this is my way around updating acceptances and Zs        
+        for(int aa = 0; aa < nn; aa++){
+            accZ(aa) = accZint(aa);
+            Ztr.col(aa) = ZintTr.col(aa);
+        }
+        Z = Ztr.t();
+        
+ //       accZ.print("accZ");
+        double llikAll = FullLogLik(Y,Z,Intercept,nn,dd);
+  //     Rprintf("llikAll %f", llikAll);                         
+
+        Intupdt = updateInterceptLSM(Y, Z,nn,dd,Intercept,
+                MuInt,VarInt,tuneInt,llikAll,accInt);
+        Intercept = Intupdt["Intercept"];
+        accInt = Intupdt["acc"];
+        llikAll = Intupdt["llik"];        
+   		for(int dZ=0; dZ < dd; dZ++){
+            for(int nZ=0; nZ < nn; nZ++){
+                arma::vec Zcol = Z.col(dZ);
+				D(dZ) += (Zcol(nZ))*(Zcol(nZ));
+		}   }
+          
+        for(int vv = 0; vv < dd; vv++){	
+            D(vv) = D(vv)/2.0 + B;
+            double C = A + nn/2.0;
+            VarZ(vv,vv) = 1.0/(rgamma(1,C,((1.0)/D(vv)))[0]);
+        }
+        //STORE UPDATES
+        InterceptFinal(iter) = Intercept;
+        ZFinal(iter) = Z;
+        Likelihood(iter) = llikAll;
+        ZVarFinal(iter) = VarZ;	     
+    }    
+    return List::create(
+        Named("Intercept") = InterceptFinal,
+        Named("Z") = ZFinal,
+        Named("ZVar") = ZVarFinal,
+        Named("Likelihood") = Likelihood,
+        Named("accInt") = accInt,
+        Named("accZ") = accZ
+        );
+}
 
 
 

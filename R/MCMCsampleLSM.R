@@ -1,6 +1,6 @@
 ##MCMC sampling function 
 MCMCsampleLSM = function(niter,Y,Z,Intercept,dd,MuInt,VarInt,VarZ,Psi,
-                      dof,accZ,accInt,tuneZ,tuneInt,A,B)
+                         dof,accZ,accInt,tuneZ,tuneInt,A,B)
 {
     nn = nrow(Y)
     #using MDS of dis-similarity matrix of observed network at time tt
@@ -12,35 +12,15 @@ MCMCsampleLSM = function(niter,Y,Z,Intercept,dd,MuInt,VarInt,VarZ,Psi,
     C = (diag(nn) - (1/nn) * array(1, dim = c(nn,nn))) 
     ##projection matrix
     Z00 = C %*% Z 
-    ZFinal = list()
-    InterceptFinal = rep(NA,niter)
-    Likelihood = rep(NA,niter)
-    ZVarFinal = list()    
-    for(iter in 1:niter){
-        #update Z
-        llikOldZ = sapply(1:nn,function(x)likelihoodi(x,dd,nn,Y,Z,Intercept))
-        Zupdt = ZupdateLSM(Y=Y,Z=Z,Intercept=Intercept,dd=dd,nn =nn,
-                        var=VarZ,llikOld=llikOldZ,acc=accZ,tune=tuneZ)
-	Zupdt = ZupdateLSM
-        Z = Zupdt[[1]]
-        accZ = Zupdt[[2]]
-        llikAll = FullLogLik(Y,Z,Intercept,nn,dd)
-        #update intercept
-        Intupdt = InterceptupdateLSM(Intercept=Intercept,llikAll=llikAll,
-                                  MuBeta=MuInt,VarBeta=VarInt,tune=tuneInt,acc=accInt,Y=Y,Z=Z)
-        Intercept = Intupdt$Intercept
-        accInt = Intupdt$acc
-        llikAll = Intupdt$llikAll
-        InterceptFinal[iter] = Intercept
-        #VarZ = matrix(SigmaUpdatelsm(dof,Psi,Z,dd),nrow=2) 
-        VarZ = SigmaUpdatelsm(A=A,B=B,Z=Z,nn=nn,dd=dd)        
-        #STORE UPDATES
-        ZFinal[[iter]] = Z
-        Likelihood[iter] = llikAll
-        ZVarFinal[[iter]] = VarZ	
-        print(iter)
-    }
-    draws = list(Z=ZFinal,Intercept=InterceptFinal,Likelihood =Likelihood ,VarZ =ZVarFinal)
+    MCMCdraws = MCMCcppLSM(Y,Z,Intercept,nn,dd,niter,tuneInt,tuneZ,accInt,accZ,
+            MuInt,VarInt,VarZ,A,B) 
+    
+    draws = list(Intercept = MCMCdraws$Intercept,
+            Z = MCMCdraws$Z, VarZ = MCMCdraws$ZVarFinal,
+            Likelihood = MCMCdraws$Likelihood)
+    
+    accInt = MCMCdraws$accInt;    
+    accZ = MCMCdraws$accZ;
     accZ = accZ/niter
     accInt = accInt/niter
     acc = list(accZ=accZ,accInt=accInt)

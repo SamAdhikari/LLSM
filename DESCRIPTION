@@ -1,8 +1,8 @@
 Package: LLSM
 Type: Package
 Title: Package to Fit Longitudinal Latent Space Model
-Version: 0.1
-Date: 2015-09-01
+Version: 0.2
+Date: 2015-09-30
 Author: Samrachana Adhikari
 Maintainer: Samrachana Adhikari <asamrach@andrew.cmu.edu>
 Description: Package to Fit LSM in Longitudinal Network Data

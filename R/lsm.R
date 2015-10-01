@@ -59,8 +59,7 @@ lsm = function(Y,Y1,initialVals = NULL, priors = NULL, tune = NULL,
             for(counter in 1:a.number ){                
                 rslt = MCMCsampleLSM(niter = 200,Y=YY,Z=Z0,Intercept=Intercept0,
                                   dd=dd,MuInt=MuInt,VarInt=VarInt,
-                                  VarZ=VarZ,Psi=Psi,dof=dof,
-                                  accZ=accZ,accInt=accInt,
+                                  VarZ=VarZ, accZ=accZ,accInt=accInt,
                                   tuneZ=tuneZ,tuneInt=tuneInt,A = A,B=B)
                 tuneZ = adjust.my.tune(tuneZ, rslt$acc$accZ,2)
                 tuneInt = adjust.my.tune(tuneInt,rslt$acc$accInt, 1)
@@ -75,8 +74,7 @@ lsm = function(Y,Y1,initialVals = NULL, priors = NULL, tune = NULL,
     }
     rslt = MCMCsampleLSM(niter = niter,Y=YY,Z=Z0,Intercept=Intercept0,
                       dd=dd,MuInt=MuInt,VarInt=VarInt,
-                      VarZ=VarZ,Psi=Psi,dof=dof,
-                      accZ=accZ,accInt=accInt,
+                      VarZ=VarZ,accZ=accZ,accInt=accInt,
                       tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B)  
     ##Procrustean transformation of latent positions
     g = graph.adjacency(Y1)  #using MDS of dis-similarity matrix of observed network at time 1

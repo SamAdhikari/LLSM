@@ -20,12 +20,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // FullLogLik
-double FullLogLik(arma::vec YY, arma::mat ZZ, double intercept, int nn, int dd);
+double FullLogLik(arma::mat YY, arma::mat ZZ, double intercept, int nn, int dd);
 RcppExport SEXP LLSM_FullLogLik(SEXP YYSEXP, SEXP ZZSEXP, SEXP interceptSEXP, SEXP nnSEXP, SEXP ddSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::vec >::type YY(YYSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type YY(YYSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type ZZ(ZZSEXP);
     Rcpp::traits::input_parameter< double >::type intercept(interceptSEXP);
     Rcpp::traits::input_parameter< int >::type nn(nnSEXP);
@@ -174,22 +174,28 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// ZupdateLSM
-List ZupdateLSM(arma::mat Y, arma::mat Z, double Intercept, int dd, int nn, arma::mat var, arma::vec llikOld, arma::vec acc, arma::vec tune);
-RcppExport SEXP LLSM_ZupdateLSM(SEXP YSEXP, SEXP ZSEXP, SEXP InterceptSEXP, SEXP ddSEXP, SEXP nnSEXP, SEXP varSEXP, SEXP llikOldSEXP, SEXP accSEXP, SEXP tuneSEXP) {
+// MCMCcppLSM
+List MCMCcppLSM(arma::mat Y, arma::mat Z, double Intercept, int nn, int dd, int niter, double tuneInt, arma::vec tuneZ, int accInt, arma::vec accZ, double MuInt, double VarInt, arma::mat VarZ, double A, double B);
+RcppExport SEXP LLSM_MCMCcppLSM(SEXP YSEXP, SEXP ZSEXP, SEXP InterceptSEXP, SEXP nnSEXP, SEXP ddSEXP, SEXP niterSEXP, SEXP tuneIntSEXP, SEXP tuneZSEXP, SEXP accIntSEXP, SEXP accZSEXP, SEXP MuIntSEXP, SEXP VarIntSEXP, SEXP VarZSEXP, SEXP ASEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< arma::mat >::type Y(YSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Z(ZSEXP);
     Rcpp::traits::input_parameter< double >::type Intercept(InterceptSEXP);
-    Rcpp::traits::input_parameter< int >::type dd(ddSEXP);
     Rcpp::traits::input_parameter< int >::type nn(nnSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type var(varSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type llikOld(llikOldSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type acc(accSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type tune(tuneSEXP);
-    __result = Rcpp::wrap(ZupdateLSM(Y, Z, Intercept, dd, nn, var, llikOld, acc, tune));
+    Rcpp::traits::input_parameter< int >::type dd(ddSEXP);
+    Rcpp::traits::input_parameter< int >::type niter(niterSEXP);
+    Rcpp::traits::input_parameter< double >::type tuneInt(tuneIntSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type tuneZ(tuneZSEXP);
+    Rcpp::traits::input_parameter< int >::type accInt(accIntSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type accZ(accZSEXP);
+    Rcpp::traits::input_parameter< double >::type MuInt(MuIntSEXP);
+    Rcpp::traits::input_parameter< double >::type VarInt(VarIntSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type VarZ(VarZSEXP);
+    Rcpp::traits::input_parameter< double >::type A(ASEXP);
+    Rcpp::traits::input_parameter< double >::type B(BSEXP);
+    __result = Rcpp::wrap(MCMCcppLSM(Y, Z, Intercept, nn, dd, niter, tuneInt, tuneZ, accInt, accZ, MuInt, VarInt, VarZ, A, B));
     return __result;
 END_RCPP
 }
