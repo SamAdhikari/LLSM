@@ -1,6 +1,5 @@
-updatePhi <-
-function(Z,TT,dd,nn,Phi,ZVar,MuPhi,
-                     VarPhi,tune,acc)
+updatePhi = function(Z,TT,dd,nn,Phi,ZVar,MuPhi,
+                     VarPhi,tune,acc,gList)
 {
     PhiNew = Phi
     kk = 1
@@ -9,8 +8,8 @@ function(Z,TT,dd,nn,Phi,ZVar,MuPhi,
             PhiNew[ii,jj] = Phi[ii,jj] + tune[kk]*rnorm(1,0,1)
             eiv = eigen(PhiNew)$values
             if(all(abs(eiv)< 1)){
-                llikold = Zllik(Z,TT,dd,nn,Phi,ZVar)
-                lliknew = Zllik(Z,TT,dd,nn,PhiNew,ZVar)
+                llikold = Zllik(Z,TT,dd,nn,Phi,ZVar,gList=gList)
+                lliknew = Zllik(Z,TT,dd,nn,PhiNew,ZVar,gList=gList)
                 priorOld = dnorm(Phi[ii,jj],MuPhi,VarPhi,log=TRUE)
                 priorNew = dnorm(PhiNew[ii,jj],MuPhi,VarPhi,log=TRUE)
                 logratio = lliknew-llikold+priorNew-priorOld 
@@ -28,3 +27,4 @@ function(Z,TT,dd,nn,Phi,ZVar,MuPhi,
     }
     return(list(Phi = Phi,acc = acc))
 }
+

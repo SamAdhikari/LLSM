@@ -4,6 +4,17 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
     YY = Y
+    ##Procrustean transformation of latent positions
+    C = lapply(1:TT,function(tt){
+	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
+	})
+    Z0 = lapply(1:TT,function(tt){
+        g = graph.adjacency(Y[[tt]]);
+        ss = shortest.paths(g);
+        ss[ss > 4] = 4;
+        Z0 = cmdscale(ss,k = dd);
+        return(Z0)})	
+    Z00 = lapply(1:TT,function(tt)C[[tt]]%*%Z0[[tt]])
     #Priors
     if(is.null(priors)){
         MuInt= 0 
@@ -23,12 +34,12 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
     }
     ##starting values
     if(is.null(initialVals)){
-        Z0 = list()
-        for(i in 1:TT){  
+     #   Z0 = list()
+     #   for(i in 1:TT){  
             # ZZ = t(replicate(nn[i],rnorm(dd,0,1)))
-            ZZ = array(NA,dim=c(nn[i],dd))    
-            Z0[[i]] = ZZ    	 
-        }
+     #       ZZ = array(NA,dim=c(nn[i],dd))    
+     #       Z0[[i]] = ZZ    	 
+     #   }
         Intercept0  = rnorm(1, 0,1)
         print("Starting Values Set")
     }else{
@@ -78,16 +89,16 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
                         accZ=accZ,accInt=accInt,
                         tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B)  
     ##Procrustean transformation of latent positions
-    C = lapply(1:TT,function(tt){
-	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
+#    C = lapply(1:TT,function(tt){
+#	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
 	})
 
-    Z00 = lapply(1:TT,function(tt){
-        g = graph.adjacency(Y[[tt]]);
-        ss = shortest.paths(g);
-        ss[ss > 4] = 4;
-        Z0 = cmdscale(ss,k = dd);
-        return(C[[tt]]%*%Z0)})
+#    Z00 = lapply(1:TT,function(tt){
+#        g = graph.adjacency(Y[[tt]]);
+#        ss = shortest.paths(g);
+#        ss[ss > 4] = 4;
+#        Z0 = cmdscale(ss,k = dd);
+#        return(C[[tt]]%*%Z0)})
 
 #   g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
 #    ss = shortest.paths(g)

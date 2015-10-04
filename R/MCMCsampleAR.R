@@ -1,42 +1,32 @@
-
 ##MCMC sampling function 
-MCMCsampleAR = function(niter,Y,Z,Intercept,Phi,dd,TT,nn,
+MCMCsampleAR = function(niter,Y,Z,Z00,C,Intercept,Phi,dd,TT,nn,
                       MuInt,VarInt,MuPhi,VarPhi,VarZ,
                       dof,Psi,accZ,accInt,accPhi,accSigma,
                       tuneZ,
-                      tuneInt,tunePhi,prTransformed=TRUE)
+                      tuneInt,tunePhi,prTransformed=prTransformed,
+                      gList)
 {
-    #using MDS of dis-similarity matrix of observed network at time tt
-    Z = lapply(1:TT,function(tt){
-        g = graph.adjacency(Y[[tt]]);
-        ss = shortest.paths(g);
-        ss[ss > 4] = 4;
-        Z0 = cmdscale(ss,k = dd);
-        return(Z0)})
-    #     ##Centering matrix
-    C = (diag(nn[1])-(1/nn[1])*array(1, dim = c(nn[1],nn[1]))) 
-    #     ##projection matrix
-    Z00 = C %*% Z[[1]] 
-    #     Z00 = C %*%replicate(dd,rnorm(nn[1],0,1)) #using random target instead  
-    llikOld = array(NA,dim=c(nn[1],TT))
+#    llikOld = array(NA,dim=c(nn[1],TT))
+    llikOld = list()
+    length(llikOld) = TT
     ZFinal = list()
     InterceptFinal = rep(NA,niter)
     Likelihood = rep(NA,niter)
     PhiFinal = list()
-    ZVarFinal = list()	
-    
+    ZVarFinal = list()	   
     for(iter in 1:niter){
         #update Z
-        for(i in 1:nn[1]){
-            llikOld[i,] = sapply(1:TT,function(x){                 
-                likelihoodi(i,dd,nn[x],Y[[x]],Z[[x]],Intercept)})
-        }     
-        
+        llikOld = lapply(1:TT,function(x){
+             sapply(1:nn[x],function(y) likelihoodi(y,dd,nn[x],Y[[x]],Z[[x]],Intercept))           
+        })     
+        print("llikOldDone")
         Zupdt = ZupdateAR(Y=Y,Z=Z,TT=TT,Intercept=Intercept,
                         dd=dd,nn=nn,Phi=Phi,var=VarZ,
-                        llikOld=llikOld,acc=accZ,tune=tuneZ,Z00=Z00,C=C)
+                        llikOld=llikOld,acc=accZ,tune=tuneZ,
+                        Z00=Z00,C=C,gList=gList,prTransformed)
         Z = Zupdt$Z
         accZ = Zupdt$acc
+	print("Zupdated")
      #   print(Zupdt$llikOld - llikOld)
         #update Intercept
         llikAll = sum(sapply(1:TT,function(x){
@@ -49,18 +39,21 @@ MCMCsampleAR = function(niter,Y,Z,Intercept,Phi,dd,TT,nn,
         Intercept = Intupdt$Intercept
         accInt = Intupdt$acc
         llikAll = Intupdt$llikAll
+	print("InterceptUpdated")
         #Update Phi
         Phiupdt = updatePhi(Z=Z,TT=TT,dd=dd,nn=nn,Phi=Phi,
                             ZVar=VarZ,MuPhi = MuPhi,
                             VarPhi=VarPhi,tune=tunePhi,
-                            acc=accPhi)
+                            acc=accPhi,gList=gList)
         Phi = Phiupdt$Phi
         accPhi = Phiupdt$acc
+	print("PhiUpdated")
         #       Update variance of Z		
         VarZupdt = SigmaUpdate(dof=dof,Psi=Psi,Z=Z,dd=dd,TT=TT,nn=nn,
-                               Phi=Phi,Sigma=VarZ,acc=accSigma)
+                               Phi=Phi,Sigma=VarZ,acc=accSigma,gList=gList)
         VarZ = VarZupdt$Sigma
         accSigma = VarZupdt$acc
+	print("SigmaUpdated")
         #        #STORE UPDATES
         InterceptFinal[iter] = Intercept
         ZFinal[[iter]] = Z

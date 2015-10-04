@@ -2,17 +2,17 @@ MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
                       dof,accZ,accInt,tuneZ,tuneInt,A,B)
 {
     #using MDS of dis-similarity matrix of observed network at time tt
-    Z = lapply(1:TT,function(tt){
-        g = graph.adjacency(Y[[tt]]);
-        ss = shortest.paths(g);
-        ss[ss > 4] = 4;
-        Z0 = cmdscale(ss,k = dd);
-        dimnames(Z0)[[1]] = dimnames(Y[[tt]])[[1]];
-        return(Z0)})
+#    Z = lapply(1:TT,function(tt){
+#        g = graph.adjacency(Y[[tt]]);
+#        ss = shortest.paths(g);
+#        ss[ss > 4] = 4;
+#        Z0 = cmdscale(ss,k = dd);
+#        dimnames(Z0)[[1]] = dimnames(Y[[tt]])[[1]];
+#        return(Z0)})
     ##Centering matrix
-    C = (diag(nn[1]) - (1/nn[1]) * array(1, dim = c(nn[1],nn[1]))) 
+#    C = (diag(nn[1]) - (1/nn[1]) * array(1, dim = c(nn[1],nn[1]))) 
     ##projection matrix
-    Z00 = C %*% Z[[1]] 
+#    Z00 = C %*% Z[[1]] 
     ZFinal = list()
     InterceptFinal = rep(NA,niter)
     Likelihood = rep(NA,niter)

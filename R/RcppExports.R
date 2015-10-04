@@ -25,20 +25,20 @@ logdmvnorm <- function(Z, mu, Sigma, dd) {
     .Call('LLSM_logdmvnorm', PACKAGE = 'LLSM', Z, mu, Sigma, dd)
 }
 
-Zllik <- function(ZZ, TT, dd, nn, Phi, ZVar) {
-    .Call('LLSM_Zllik', PACKAGE = 'LLSM', ZZ, TT, dd, nn, Phi, ZVar)
+Zllik <- function(ZZ, TT, dd, nn, Phi, ZVar, gList) {
+    .Call('LLSM_Zllik', PACKAGE = 'LLSM', ZZ, TT, dd, nn, Phi, ZVar, gList)
 }
 
-Zupdate1 <- function(Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet) {
-    .Call('LLSM_Zupdate1', PACKAGE = 'LLSM', Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet)
+Zupdate1 <- function(Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
+    .Call('LLSM_Zupdate1', PACKAGE = 'LLSM', Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
 }
 
-Zupdatet <- function(Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet) {
-    .Call('LLSM_Zupdatet', PACKAGE = 'LLSM', Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet)
+Zupdatet <- function(Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
+    .Call('LLSM_Zupdatet', PACKAGE = 'LLSM', Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
 }
 
-ZupdateTT <- function(Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet) {
-    .Call('LLSM_ZupdateTT', PACKAGE = 'LLSM', Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet)
+ZupdateTT <- function(Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
+    .Call('LLSM_ZupdateTT', PACKAGE = 'LLSM', Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
 }
 
 MCMCcppLSM <- function(Y, Z, Intercept, nn, dd, niter, tuneInt, tuneZ, accInt, accZ, MuInt, VarInt, VarZ, A, B) {

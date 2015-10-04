@@ -17,7 +17,8 @@
 #' @param prTransformed Logical to indicate if procrustes transformation
 #' 		is to be done during sampling of latent positions
 #
-llsmAR = function(Y,initialVals = NULL,
+llsmAR =
+function(Y,initialVals = NULL,
                           priors = NULL, tune = NULL, 
                           tuneIn = TRUE, dd, niter,
                           prTransformed = TRUE)
@@ -25,6 +26,7 @@ llsmAR = function(Y,initialVals = NULL,
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
     YY = Y
+    gList = getIndicesYY(Y,TT,nn)
     #Priors
     if(is.null(priors)){
         MuInt= 0 
@@ -34,8 +36,8 @@ llsmAR = function(Y,initialVals = NULL,
         MuPhi = 0
      #   dof = 4
      #   Psi = diag(1,dd)
-     dof = 100
-     Psi = 150
+     dof = 10
+     Psi = 10
     }else{
         if(class(priors) != 'list')(
             stop("priors must be of class list, if not NULL"))
@@ -64,7 +66,18 @@ llsmAR = function(Y,initialVals = NULL,
         Z0 = initialVals$Z0
         Intercept0 = initialVals$Intercept0
         Phi0 = initialVals$Phi0
-    }    
+    }
+    #using MDS of dis-similarity matrix of observed network at time tt
+    Z0 = lapply(1:TT,function(tt){
+        g = graph.adjacency(Y[[tt]]);
+        ss = shortest.paths(g);
+        ss[ss > 4] = 4;
+        Z0 = cmdscale(ss,k = dd);
+        return(Z0)})
+    #     ##Centering matrix
+    C = lapply(1:TT,function(tt)(diag(nn[tt])-(1/nn[tt])*array(1, dim = c(nn[tt],nn[tt])))) 
+    #     ##projection matrix
+    Z00 = lapply(1:TT,function(tt)C[[tt]] %*% Z0[[tt]]) 
     ###tuning parameters#####
     if(is.null(tune)){
         a.number = 5
@@ -93,7 +106,7 @@ llsmAR = function(Y,initialVals = NULL,
             print('Tuning the Sampler')
             for(counter in 1:a.number ){
                 rslt = MCMCsampleAR(niter = 200,
-                                  Y=YY,Z=Z0,
+                                  Y=YY,Z=Z0,Z00=Z00,C=C,
                                   Intercept=Intercept0,
                                   Phi=Phi0,dd=dd,
                                   TT=TT,nn =nn,
@@ -110,7 +123,8 @@ llsmAR = function(Y,initialVals = NULL,
                                   tuneZ=tuneZ,
                                   tuneInt=tuneInt,
                                   tunePhi=tunePhi,
-                                  prTransformed=prTransformed)  
+                                  prTransformed=prTransformed,
+                                  gList=gList)  
                 
                 tuneZ = lapply(1:TT,function(x){
                     adjust.my.tune(tuneZ[[x]], 
@@ -129,7 +143,7 @@ llsmAR = function(Y,initialVals = NULL,
         print("Tuning is finished")  
     }
     rslt = MCMCsampleAR(niter=niter,
-                      Y=YY,Z=Z0,
+                      Y=YY,Z=Z0,Z00=Z00,C=C,
                       Intercept=Intercept0,
                       Phi=Phi0,
                       dd=dd,TT=TT,nn=nn,
@@ -146,20 +160,21 @@ llsmAR = function(Y,initialVals = NULL,
                       tuneZ=tuneZ,
                       tuneInt=tuneInt,
                       tunePhi=tunePhi,
-                      prTransformed=prTransformed)
+                      prTransformed=prTransformed,
+                      gList=gList)
     ##Procrustean transformation of latent positions if prTransformed == FALSE within MCMC
     if(prTransformed == FALSE){
-        g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
-        ss = shortest.paths(g)
-        ss[ss > 4] = 4
-        Z0 = cmdscale(ss,k = 2)
-        C = (diag(nn[1])-(1/nn[1])*array(1,dim = c(nn[1],nn[1])))  ##Centering matrix
-        Z00 = C %*% Z0 ##target matrix
+   #     g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
+   #     ss = shortest.paths(g)
+   #     ss[ss > 4] = 4
+   #     Z0 = cmdscale(ss,k = 2)
+   #     C = (diag(nn[1])-(1/nn[1])*array(1,dim = c(nn[1],nn[1])))  ##Centering matrix
+   #     Z00 = C %*% Z0 ##target matrix
         Ztransformed = lapply(1:(niter), function(ii){
             lapply(1:TT,function(tt){
                 z=rslt$draws$Z[[ii]][[tt]];
-                z = C%*%z;
-                pr = t(Z00)%*% z;
+                z = C[[tt]]%*%z;
+                pr = t(Z00[[tt]])%*% z;
                 ssZ = svd(pr)
                 tx = ssZ$v%*%t(ssZ$u)
                 zfinal = z%*%tx
@@ -170,7 +185,7 @@ llsmAR = function(Y,initialVals = NULL,
     rslt$tune = list(tuneZ=tuneZ,
                      tuneInt=tuneInt,
                      tunePhi=tunePhi)
-    class(rslt) = 'LLSMAR'
+    class(rslt) = 'LLSM'
     rslt       
 }
-
+ 
