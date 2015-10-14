@@ -30,7 +30,7 @@ arma::mat distMat(int nn, int dd, arma::mat ZZ)
       for(jj = 0 ; jj <= ii ; jj++){
           tmp = 0.0;
     for(kk = 0 ; kk < dd ; kk++){
-	//	double VV = ZZ(ii+kk*nn) - ZZ(jj+kk*nn);
+    //	double VV = ZZ(ii+kk*nn) - ZZ(jj+kk*nn);
         double VV = ZZ(ii,kk) - ZZ(jj,kk);
  		tmp = tmp + VV*VV;
 	}
@@ -190,7 +190,7 @@ double logdmvnorm(arma::vec Z, arma::vec mu, arma::mat Sigma,int dd){
 
 // [[Rcpp::export]]
 double Zllik(List ZZ,int TT,int dd,arma::vec nn,
-             arma::mat Phi,arma::mat ZVar,arma::vec gList)
+             arma::mat Phi,arma::mat ZVar,arma::vec gList,arma::vec posPrev)
 {
     double sumn = 0.0;
     arma::vec mu;
@@ -216,7 +216,8 @@ double Zllik(List ZZ,int TT,int dd,arma::vec nn,
                 for(int ii =0; ii < nn[tt]; ii++){
                     arma::mat Zti = ZtTr.col(ii);
                     if((gList(ii+sumn)==1)|(gList(ii+sumn)==2)){
-                        arma::vec Ztminus1i = Ztminus1.col(ii);
+                        double ij = posPrev(ii+sumn);
+                        arma::vec Ztminus1i = Ztminus1.col(ij);
                         mu = Phi * Ztminus1i;
                         llik = llik + logdmvnorm(Zti,mu,ZVar,dd);
                         }else{
@@ -230,7 +231,8 @@ double Zllik(List ZZ,int TT,int dd,arma::vec nn,
                 for(int ii =0; ii < nn[tt]; ii++){
                     arma::mat Zti = ZtTr.col(ii);
                     if(gList(ii+sumn)==1){
-                        arma::vec Ztminus1i = Ztminus1.col(ii);
+                        double ij = posPrev(ii+sumn);
+                        arma::vec Ztminus1i = Ztminus1.col(ij);
                         mu = Phi * Ztminus1i;
                         llik = llik + logdmvnorm(Zti,mu,ZVar,dd);
                     }else{
@@ -245,6 +247,7 @@ double Zllik(List ZZ,int TT,int dd,arma::vec nn,
     }
     return llik;
 }
+
 
 //// [[Rcpp::export]]
 //double Zllik(List ZZ,int TT,int dd,arma::vec nn,
@@ -476,11 +479,12 @@ double Zllik(List ZZ,int TT,int dd,arma::vec nn,
 //       rslt(2) = llikOld;
 //       return(rslt);
 //       }
-    
+
 // [[Rcpp::export]]
 List Zupdate1(arma::mat Yt,arma::mat Zt,arma::mat ZNext, int TT,
               double Intercept,int dd,int nn,arma::mat Phi,arma::mat var,
-              arma::vec llikOld,arma::vec acct,arma::vec tunet, arma::vec gList)
+              arma::vec llikOld,arma::vec acct,arma::vec tunet, arma::vec gList, 
+              arma::vec posNext)
 {
     arma::vec Zsmt(dd);
     arma::vec Znewsm(dd);
@@ -504,6 +508,7 @@ List Zupdate1(arma::mat Yt,arma::mat Zt,arma::mat ZNext, int TT,
     //update for t = 1
     //update Z_t by row    
     for(int i=0; i < nn; i ++){
+	//Rprintf("I : %d\n",i);
         Zsmt = Ztt.col(i);
         ZsmPrev = arma::zeros<arma::vec>(dd);
         //prior density at current values
@@ -518,11 +523,15 @@ List Zupdate1(arma::mat Yt,arma::mat Zt,arma::mat ZNext, int TT,
         llikNew = likelihoodi((i+1),dd,nn,Yt,Znew.t(),Intercept);                        
         double ll = llikOld(i);
         if(gList(i) == 1){
-            ZsmNext = ZNextt.col(i);            
+            int ij = posNext(i)-1; //to make it compatible with C++ 0 indexing
+	//    Rprintf("IJ : %d\n",ij);
+            ZsmNext = ZNextt.col(ij);
+	//    ZsmNext.print();	            
             meanOld2 = Phi * Zsmt;
             meanNew2 = Phi * Znewsm;            
             prior2 = logdmvnorm(ZsmNext,meanOld2,var,dd);
             priorNew2 = logdmvnorm(ZsmNext,meanNew2,var,dd);
+	 //   Rprintf('priorNew2 %f',priorNew2);
             //compute log acceptance ratio            
             logratio = llikNew-ll+priorNew1-prior1+priorNew2-prior2;
         }else(logratio = llikNew-ll+priorNew1-prior1);
@@ -535,6 +544,7 @@ List Zupdate1(arma::mat Yt,arma::mat Zt,arma::mat ZNext, int TT,
         } //otherwise stay at current state
     }
     Zt = Ztt.t();
+ //   Zt.print();	
     List rslt(3);
     rslt(0) = Zt;
     rslt(1) = acct;
@@ -545,7 +555,7 @@ List Zupdate1(arma::mat Yt,arma::mat Zt,arma::mat ZNext, int TT,
 List Zupdatet(arma::mat Yt,arma::mat Zt,arma::mat ZNext,arma::mat ZPrev,int TT,
               double Intercept,int dd,
               int nn,arma::mat Phi,arma::mat var,
-              arma::vec llikOld,arma::vec acct,arma::vec tunet,arma::vec gList)
+              arma::vec llikOld,arma::vec acct,arma::vec tunet,arma::vec gList,arma::vec posPrev, arma::vec posNext)
 {    
     arma::vec Zsmt(dd);
     arma::vec Znewsm(dd);
@@ -581,7 +591,8 @@ List Zupdatet(arma::mat Yt,arma::mat Zt,arma::mat ZNext,arma::mat ZPrev,int TT,
             //prior density at proposed values
             priorNew1 =  logdmvnorm(Znewsm,ZsmPrev,var0,dd); 
         }else{
-            ZsmPrev = ZPrevt.col(j);                
+            int ij = posPrev(j)-1;
+            ZsmPrev = ZPrevt.col(ij);                
             //propose new z_i
             for(int ww = 0 ; ww < dd ; ww++){ 
                 Znewsm(ww) = Zsmt(ww)+tunet(j)*rnorm(1,0.0,1.0)[0];
@@ -597,13 +608,14 @@ List Zupdatet(arma::mat Yt,arma::mat Zt,arma::mat ZNext,arma::mat ZPrev,int TT,
          //compute likelihood
         llikNew = likelihoodi((j+1),dd,nn,Yt,Znew.t(),Intercept);    
         if((gList(j) == 1) |(gList(j) == 3)){
-            ZsmNext = ZNextt.col(j);         
+            int jk = posNext(j)-1;
+            ZsmNext = ZNextt.col(jk);         
             meanOld2 = Phi*Zsmt;    
             prior2 = logdmvnorm(ZsmNext,meanOld2,var,dd);
             meanNew2 = Phi*Znewsm;
             priorNew2 = logdmvnorm(ZsmNext,meanNew2,var,dd);                
             logratio = llikNew-llikOld(j)+priorNew1-prior1+
-                priorNew2 - prior2;	    
+                priorNew2 - prior2;        
         }else(logratio = llikNew-llikOld(j)+priorNew1-prior1);
         //logratio
         if(log(runif(1,0.0,1.0)[0]) < logratio){
@@ -625,7 +637,7 @@ List Zupdatet(arma::mat Yt,arma::mat Zt,arma::mat ZNext,arma::mat ZPrev,int TT,
 // [[Rcpp::export]]
 List ZupdateTT(arma::mat Yt,arma::mat Zt, arma::mat ZPrev, int TT,
                double Intercept,int dd,int nn,arma::mat Phi,arma::mat var,
-               arma::vec llikOld,arma::vec acct,arma::vec tunet,arma::vec gList)
+               arma::vec llikOld,arma::vec acct,arma::vec tunet,arma::vec gList,arma::vec posPrev)
 {    
     arma::vec Zsmt(dd);
     arma::vec Znewsm(dd);
@@ -655,7 +667,8 @@ List ZupdateTT(arma::mat Yt,arma::mat Zt, arma::mat ZPrev, int TT,
             //prior density at proposed values
             priorNew1 =  logdmvnorm(Znewsm,ZsmPrev,var0,dd); 
         }else{
-            ZsmPrev = ZPrevt.col(k);
+            int ij = posPrev(k)-1;
+            ZsmPrev = ZPrevt.col(ij);
             Znew.col(k) = Znewsm;
             //prior at current value
             meanOld1 = Phi*ZsmPrev;
@@ -705,6 +718,7 @@ double LogpriorBeta(double Beta, double MuBeta,double SigmaBeta)
     return val;
 }
 
+// [[Rcpp::export]]
 List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
             int nn,arma::mat var,
             arma::vec llikOld,arma::vec acc,arma::vec tune)
@@ -765,7 +779,6 @@ List ZupdateLSM(arma::mat Y,arma::mat Z,double Intercept,int dd,
 }
 
 
-//update intercept
 List updateInterceptLSM(arma::mat Y,arma::mat Z,int nn,
     int dd, double Intercept, double mu,double sigmasq,
     double tuneInt,double llik,int acc){
@@ -859,6 +872,5 @@ List MCMCcppLSM(arma::mat Y,arma::mat Z,double Intercept,int nn,int dd,int niter
         Named("accZ") = accZ
         );
 }
-
 
 

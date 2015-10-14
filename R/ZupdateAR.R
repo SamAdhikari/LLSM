@@ -1,21 +1,25 @@
 ZupdateAR <-
  function(Y,Z,TT,Intercept,dd,nn,Phi,var,
                    llikOld,acc,tune,prTransformed=prTransformed,
-                   Z00,C,gList)
+                   Z00,C,gList,posPrev=posPrev,posNext=posNext)
 { 
     a = 1
     b = nn[1]
     for(tt in 1:TT){
         gListt = gList[a:b]
+	posPrevt = posPrev[a:b]
+	posNextt = posNext[a:b]
         if(tt == 1){
             Zupdt1 = Zupdate1(Yt = Y[[tt]],Zt = Z[[tt]],ZNext=Z[[tt+1]],TT=TT,
                           Intercept=Intercept,dd=dd,nn=nn[tt],Phi=Phi,var=var,
                           llikOld=llikOld[[tt]],acct=acc[[tt]],
-					tunet=tune[[tt]],gList=gListt)
+					tunet=tune[[tt]],gList=gListt,
+			posNext=posNextt)
             Z[[tt]] = Zupdt1[[1]]
             acc[[tt]] = Zupdt1[[2]][,1]
             llikOld[[tt]] = Zupdt1[[3]][,1]
         }
+#	print('Z1 done')
         if(TT > 2){
             if(tt > 1 & tt < TT){            
                 Zupdt_tt = Zupdatet(Yt=Y[[tt]],Zt=Z[[tt]],ZNext=Z[[tt+1]],
@@ -23,7 +27,8 @@ ZupdateAR <-
                                         Intercept=Intercept,dd=dd,nn=nn[tt],
 					Phi=Phi,var=var,
                                          llikOld=llikOld[[tt]],acct=acc[[tt]],
-					tunet=tune[[tt]],gList=gListt)
+					tunet=tune[[tt]],gList=gListt,
+					posPrev=posPrevt,posNext=posNextt)
                 Z[[tt]] = Zupdt_tt[[1]]
                 acc[[tt]] = Zupdt_tt[[2]][,1]
                 llikOld[[tt]] = Zupdt_tt[[3]][,1]                
@@ -32,7 +37,7 @@ ZupdateAR <-
             ZupdtTT = ZupdateTT(Yt =Y[[tt]],Zt = Z[[tt]],ZPrev=Z[[tt-1]],TT=TT,
                       Intercept=Intercept,dd=dd,nn=nn[tt],Phi=Phi,var=var,
                       llikOld =llikOld[[tt]],acct=acc[[tt]],tunet=tune[[tt]],
-			gList=gListt)
+			gList=gListt,posPrev=posPrevt)
             Z[[tt]] = ZupdtTT[[1]]
             acc[[tt]] = ZupdtTT[[2]][,1]
             llikOld[[tt]] = ZupdtTT[[3]][,1]

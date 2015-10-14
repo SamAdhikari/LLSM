@@ -4,15 +4,16 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
     YY = Y
+    gList = getIndicesYY(Y,TT,nn)$gg
     ##Procrustean transformation of latent positions
     C = lapply(1:TT,function(tt){
-	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
-	})
+	 diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt]))})
     Z0 = lapply(1:TT,function(tt){
         g = graph.adjacency(Y[[tt]]);
         ss = shortest.paths(g);
         ss[ss > 4] = 4;
         Z0 = cmdscale(ss,k = dd);
+	dimnames(Z0)[[1]] = dimnames(YY[[tt]])[[1]];
         return(Z0)})	
     Z00 = lapply(1:TT,function(tt)C[[tt]]%*%Z0[[tt]])
     #Priors
@@ -72,7 +73,7 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
                                     TT=TT,dd=dd,nn=nn,MuInt=MuInt,VarInt=VarInt,
                                     VarZ=VarZ,Psi=Psi,dof=dof,
                                     accZ=accZ,accInt=accInt,
-                                    tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B)
+                                    tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList)
                 tuneZ = lapply(1:TT,function(x)adjust.my.tune(tuneZ[[x]], rslt$acc$accZ[[x]], 2))
                 tuneInt = adjust.my.tune(tuneInt,rslt$acc$accInt, 1)
                 print(paste('TuneDone = ',tuneX))
@@ -87,11 +88,11 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
                         TT=TT,dd=dd,nn=nn,MuInt=MuInt,VarInt=VarInt,
                         VarZ=VarZ,Psi=Psi,dof=dof,
                         accZ=accZ,accInt=accInt,
-                        tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B)  
+                        tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList)  
     ##Procrustean transformation of latent positions
 #    C = lapply(1:TT,function(tt){
 #	 (diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt])))  ##Centering matrix
-	})
+#	})
 
 #    Z00 = lapply(1:TT,function(tt){
 #        g = graph.adjacency(Y[[tt]]);

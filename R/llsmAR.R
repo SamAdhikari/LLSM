@@ -26,7 +26,10 @@ function(Y,initialVals = NULL,
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
     YY = Y
-    gList = getIndicesYY(Y,TT,nn)
+    YYIndices = getIndicesYY(Y,TT,nn)
+    gList = YYIndices$gg
+    posPrev = YYIndices$posPrev
+    posNext = YYIndices$posNext	
     #Priors
     if(is.null(priors)){
         MuInt= 0 
@@ -73,6 +76,7 @@ function(Y,initialVals = NULL,
         ss = shortest.paths(g);
         ss[ss > 4] = 4;
         Z0 = cmdscale(ss,k = dd);
+	dimnames(Z0)[[1]] = dimnames(YY[[tt]])[[1]];
         return(Z0)})
     #     ##Centering matrix
     C = lapply(1:TT,function(tt)(diag(nn[tt])-(1/nn[tt])*array(1, dim = c(nn[tt],nn[tt])))) 
@@ -124,7 +128,8 @@ function(Y,initialVals = NULL,
                                   tuneInt=tuneInt,
                                   tunePhi=tunePhi,
                                   prTransformed=prTransformed,
-                                  gList=gList)  
+                                  gList=gList,
+				  posPrev= posPrev,posNext=posNext)  
                 
                 tuneZ = lapply(1:TT,function(x){
                     adjust.my.tune(tuneZ[[x]], 
@@ -161,7 +166,7 @@ function(Y,initialVals = NULL,
                       tuneInt=tuneInt,
                       tunePhi=tunePhi,
                       prTransformed=prTransformed,
-                      gList=gList)
+                      gList=gList,posPrev=posPrev,posNext=posNext)
     ##Procrustean transformation of latent positions if prTransformed == FALSE within MCMC
     if(prTransformed == FALSE){
    #     g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1

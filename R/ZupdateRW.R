@@ -27,7 +27,7 @@ ZupdateRW = function(Y,Z,TT,Intercept,dd,var,llikOld,acc,tune)
                 priorNew1 = Zprior(Znewsm,ZsmPrev,var)
                 if(length(which(dimnames(Z[[tt+1]])[[1]]==nameList[i]))>0){
             #        print(1)
-                    ZsmNext = Z[[tt+1]][i,]                
+                    ZsmNext = Z[[tt+1]][paste(nameList[i]),]                
                     prior2 = Zprior(ZsmNext,Zsmt,var)        		                
                     priorNew2 = Zprior(ZsmNext,Znewsm,var)
                     logratio = llikNew-llikOld[[tt]][i]+priorNew1-prior1 + priorNew2 - prior2    
@@ -59,7 +59,7 @@ ZupdateRW = function(Y,Z,TT,Intercept,dd,var,llikOld,acc,tune)
                     #propose new z_i
                     Znewsm = Zsmt + tune[[tt]][i]*rnorm(dd,0,1)
                     if(length(which(dimnames(Z[[tt-1]])[[1]]==nameList[i]))>0){
-                        ZsmPrev = Z[[tt-1]][i,]
+                        ZsmPrev = Z[[tt-1]][paste(nameList[i]),]
                     }else{ZsmPrev = rep(0,dd)}
                     prior1 = Zprior(Zsmt,ZsmPrev,var)                              
                     #priors at new z_i
@@ -70,7 +70,7 @@ ZupdateRW = function(Y,Z,TT,Intercept,dd,var,llikOld,acc,tune)
                                           Y[[tt]],Znew,
                                           Intercept)
                     if(length(which(dimnames(Z[[tt+1]])[[1]]==nameList[i]))>0){
-                        ZsmNext = Z[[tt+1]][i,] 
+                        ZsmNext = Z[[tt+1]][paste(nameList[i]),] 
                         prior2 = Zprior(ZsmNext,Zsmt,var)     
                         priorNew2 = Zprior(ZsmNext,Znewsm,var)  
                         #logratio
@@ -96,7 +96,7 @@ ZupdateRW = function(Y,Z,TT,Intercept,dd,var,llikOld,acc,tune)
             for(i in 1:nrow(Z[[tt]])){ 
                 Zsmt = Z[[tt]][i,]
                 if(length(which(dimnames(Z[[tt-1]])[[1]]==nameList[i]))>0){
-                    ZsmPrev = Z[[tt-1]][i,]
+                    ZsmPrev = Z[[tt-1]][paste(nameList[i]),]
                 }else{
                     ZsmPrev = rep(0,dd)
                 }

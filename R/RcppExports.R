@@ -25,20 +25,24 @@ logdmvnorm <- function(Z, mu, Sigma, dd) {
     .Call('LLSM_logdmvnorm', PACKAGE = 'LLSM', Z, mu, Sigma, dd)
 }
 
-Zllik <- function(ZZ, TT, dd, nn, Phi, ZVar, gList) {
-    .Call('LLSM_Zllik', PACKAGE = 'LLSM', ZZ, TT, dd, nn, Phi, ZVar, gList)
+Zllik <- function(ZZ, TT, dd, nn, Phi, ZVar, gList, posPrev) {
+    .Call('LLSM_Zllik', PACKAGE = 'LLSM', ZZ, TT, dd, nn, Phi, ZVar, gList, posPrev)
 }
 
-Zupdate1 <- function(Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
-    .Call('LLSM_Zupdate1', PACKAGE = 'LLSM', Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
+Zupdate1 <- function(Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posNext) {
+    .Call('LLSM_Zupdate1', PACKAGE = 'LLSM', Yt, Zt, ZNext, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posNext)
 }
 
-Zupdatet <- function(Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
-    .Call('LLSM_Zupdatet', PACKAGE = 'LLSM', Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
+Zupdatet <- function(Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posPrev, posNext) {
+    .Call('LLSM_Zupdatet', PACKAGE = 'LLSM', Yt, Zt, ZNext, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posPrev, posNext)
 }
 
-ZupdateTT <- function(Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList) {
-    .Call('LLSM_ZupdateTT', PACKAGE = 'LLSM', Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList)
+ZupdateTT <- function(Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posPrev) {
+    .Call('LLSM_ZupdateTT', PACKAGE = 'LLSM', Yt, Zt, ZPrev, TT, Intercept, dd, nn, Phi, var, llikOld, acct, tunet, gList, posPrev)
+}
+
+ZupdateLSM <- function(Y, Z, Intercept, dd, nn, var, llikOld, acc, tune) {
+    .Call('LLSM_ZupdateLSM', PACKAGE = 'LLSM', Y, Z, Intercept, dd, nn, var, llikOld, acc, tune)
 }
 
 MCMCcppLSM <- function(Y, Z, Intercept, nn, dd, niter, tuneInt, tuneZ, accInt, accZ, MuInt, VarInt, VarZ, A, B) {

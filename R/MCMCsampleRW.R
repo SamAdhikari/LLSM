@@ -1,5 +1,5 @@
 MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
-                      dof,accZ,accInt,tuneZ,tuneInt,A,B)
+                      dof,accZ,accInt,tuneZ,tuneInt,A,B,gList)
 {
     #using MDS of dis-similarity matrix of observed network at time tt
 #    Z = lapply(1:TT,function(tt){
@@ -38,7 +38,7 @@ MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
         Intercept = Intupdt$Intercept
         accInt = Intupdt$acc
         llikAll = Intupdt$llikAll
-        VarZ = SigmaUpdatelsm(A=A,B=B,Z=Z[[1]],nn=nn,dd=dd)
+        VarZ = SigmaUpdateRW(A=A,B=B,Z=Z,nn=nn,dd=dd,TT=TT,gList=gList)
         #STORE UPDATES
         InterceptFinal[iter] = Intercept
         ZFinal[[iter]] = Z

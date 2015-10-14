@@ -8,8 +8,9 @@ InterceptupdateAR = function(Intercept,llikAll,
     #propose new value for intercept
     IntNew = Intercept + tune*rnorm(1,0,1)
     #compute loglikelihood at proposed value
-    llikNew = sum((sapply(1:TT,function(xx){
-        FullLogLik(Y[[xx]],Z[[xx]],IntNew,nn[xx],dd)})))
+    llikNew = sum(sapply(1:TT,function(xx){
+        FullLogLik(Y[[xx]],Z[[xx]],IntNew,nn[xx],dd)}))
+#    llikNew = sum(mcmapply( FullLogLik,YY=Y,ZZ=Z,intercept=IntNew,nn=nn,dd=dd,mc.cores=3))
     #log prior at current value
     priorOld = betaprior(Intercept, MuBeta, VarBeta)
     #log prior at new value

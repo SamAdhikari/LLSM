@@ -1,5 +1,5 @@
 
-SigmaUpdate= function(dof,Psi,Z,dd,TT,nn,Phi,Sigma,acc,gList)
+SigmaUpdate= function(dof,Psi,Z,dd,TT,nn,Phi,Sigma,acc,gList,posPrev)
 {
     SigmaNew = Sigma    
     nnT = sum(nn[2:TT])/2
@@ -14,19 +14,25 @@ SigmaUpdate= function(dof,Psi,Z,dd,TT,nn,Phi,Sigma,acc,gList)
 		for(kk in 1:nn[tt]){
 		    if(tt == TT){
 			if(gList[kk+Jump]==1){
-			    B=B+(Z[[tt]][kk,jj]-(Phi%*%Z[[tt-1]][kk,])[jj])^2
-			}else(B=B+(Z[[tt]][kk,jj])^2)
+			    posPrevi = posPrev[kk+Jump]
+			    B=B+((Z[[tt]][kk,jj]-
+				(Phi%*%Z[[tt-1]][posPrevi,])[jj])^2)/2
+			}else(B=B+((Z[[tt]][kk,jj])^2)/2)
 		}else{
-			if(gList[kk+Jump]==1|gList[kk+Jump]==3){
-			    B=B+(Z[[tt]][kk,jj]-(Phi%*%Z[[tt-1]][kk,])[jj])^2
-			}else(B=B+(Z[[tt]][kk,jj])^2)
+			if(gList[kk+Jump]==1|gList[kk+Jump]==2){
+		   	    posPrevi = posPrev[kk+Jump]		
+		       	    B=B+((Z[[tt]][kk,jj]-
+				(Phi%*%Z[[tt-1]][posPrevi,])[jj])^2)/2
+			}else(B=B+(Z[[tt]][kk,jj]^2)/2)
 		}    
 	}
 	Jump = Jump + nn[tt]
 	}
+#	print(B)
+#	print(dfnew)
         SigmaNew[jj,jj] = 1/rgamma(1,dfnew,B)        
-        llikOld= Zllik(Z=Z,TT=TT,dd=dd,nn=nn,Phi=Phi,ZVar=Sigma,gList=gList)
-        llikNew = Zllik(Z=Z,TT=TT,dd=dd,nn=nn,Phi=Phi,ZVar=SigmaNew,gList=gList)
+        llikOld= Zllik(Z=Z,TT=TT,dd=dd,nn=nn,Phi=Phi,ZVar=Sigma,gList=gList,posPrev=posPrev)
+        llikNew = Zllik(Z=Z,TT=TT,dd=dd,nn=nn,Phi=Phi,ZVar=SigmaNew,gList=gList,posPrev=posPrev)
         priorOld = (inverseGammaKernel(Sigma[jj,jj],dof,Psi))
         priorNew = (inverseGammaKernel(SigmaNew[jj,jj],dof,Psi))
         proposalDenNew = (inverseGammaKernel(SigmaNew[jj,jj],dfnew,B))
