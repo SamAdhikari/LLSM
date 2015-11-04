@@ -1,5 +1,5 @@
-MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,Psi,
-                      dof,accZ,accInt,tuneZ,tuneInt,A,B,gList)
+MCMCsampleRW = function(niter,Y,Z,Intercept,TT,dd,nn,MuInt,VarInt,VarZ,
+                      accZ,accInt,tuneZ,tuneInt,A,B,gList)
 {
     #using MDS of dis-similarity matrix of observed network at time tt
 #    Z = lapply(1:TT,function(tt){

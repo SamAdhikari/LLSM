@@ -21,8 +21,6 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
         MuInt= 0 
         VarInt = 1000
         VarZ = diag(10,dd)
-        dof = 4
-        Psi = diag(5,dd)
         A = 10
         B = 10    
     }else{
@@ -30,9 +28,10 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
         MuInt = priors$MuBeta
         VarInt = priors$VarBeta
         VarZ = priors$VarZ
-        dof = priors$dof
-        Psi = priors$Psi
+	A = priors$A
+	B = priors$B
     }
+    print(VarInt)	
     ##starting values
     if(is.null(initialVals)){
      #   Z0 = list()
@@ -71,8 +70,7 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
                 
                 rslt = MCMCsampleRW(niter = 200,Y=YY,Z=Z0,Intercept=Intercept0,
                                     TT=TT,dd=dd,nn=nn,MuInt=MuInt,VarInt=VarInt,
-                                    VarZ=VarZ,Psi=Psi,dof=dof,
-                                    accZ=accZ,accInt=accInt,
+                                    VarZ=VarZ,accZ=accZ,accInt=accInt,
                                     tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList)
                 tuneZ = lapply(1:TT,function(x)adjust.my.tune(tuneZ[[x]], rslt$acc$accZ[[x]], 2))
                 tuneInt = adjust.my.tune(tuneInt,rslt$acc$accInt, 1)
@@ -86,8 +84,7 @@ llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL,
     }
     rslt = MCMCsampleRW(niter = niter,Y=YY,Z=Z0,Intercept=Intercept0,
                         TT=TT,dd=dd,nn=nn,MuInt=MuInt,VarInt=VarInt,
-                        VarZ=VarZ,Psi=Psi,dof=dof,
-                        accZ=accZ,accInt=accInt,
+                        VarZ=VarZ,accZ=accZ,accInt=accInt,
                         tuneZ=tuneZ,tuneInt=tuneInt,A=A,B=B,gList=gList)  
     ##Procrustean transformation of latent positions
 #    C = lapply(1:TT,function(tt){

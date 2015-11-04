@@ -20,7 +20,7 @@ MCMCsampleAR = function(niter,Y,Z,Z00,C,Intercept,Phi,dd,TT,nn,
         llikOld = lapply(1:TT,function(x){
              sapply(1:nn[x],function(y) likelihoodi(y,dd,nn[x],Y[[x]],Z[[x]],Intercept))           
         })     
-  #      print("llikOldDone")
+        #print("llikOldDone")
         Zupdt = ZupdateAR(Y=Y,Z=Z,TT=TT,Intercept=Intercept,
                         dd=dd,nn=nn,Phi=Phi,var=VarZ,
                         llikOld=llikOld,acc=accZ,tune=tuneZ,
@@ -87,7 +87,7 @@ MCMCsampleAR = function(niter,Y,Z,Z00,C,Intercept,Phi,dd,TT,nn,
 #	VarZupdt = Updates[[2]][[2]]
         VarZ = VarZupdt$Sigma
         accSigma = VarZupdt$acc
-	#print("SigmaUpdated")
+#	print("SigmaUpdated")
         #        #STORE UPDATES
         InterceptFinal[iter] = Intercept
         ZFinal[[iter]] = Z

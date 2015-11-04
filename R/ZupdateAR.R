@@ -16,6 +16,7 @@ ZupdateAR <-
 					tunet=tune[[tt]],gList=gListt,
 			posNext=posNextt)
             Z[[tt]] = Zupdt1[[1]]
+            Z[[tt]] = procrustes(Z00[[tt]],C[[tt]],Z[[tt]])
             acc[[tt]] = Zupdt1[[2]][,1]
             llikOld[[tt]] = Zupdt1[[3]][,1]
         }
@@ -30,6 +31,7 @@ ZupdateAR <-
 					tunet=tune[[tt]],gList=gListt,
 					posPrev=posPrevt,posNext=posNextt)
                 Z[[tt]] = Zupdt_tt[[1]]
+                Z[[tt]] = procrustes(Z00[[tt]],C[[tt]],Z[[tt]])
                 acc[[tt]] = Zupdt_tt[[2]][,1]
                 llikOld[[tt]] = Zupdt_tt[[3]][,1]                
         }    }    
@@ -39,17 +41,18 @@ ZupdateAR <-
                       llikOld =llikOld[[tt]],acct=acc[[tt]],tunet=tune[[tt]],
 			gList=gListt,posPrev=posPrevt)
             Z[[tt]] = ZupdtTT[[1]]
+            Z[[tt]] = procrustes(Z00[[tt]],C[[tt]],Z[[tt]])
             acc[[tt]] = ZupdtTT[[2]][,1]
             llikOld[[tt]] = ZupdtTT[[3]][,1]
         }
         a = b + 1
         b = b + nn[tt+1]
     }                         
-    if(prTransformed==TRUE){
-           for(tt in 1:TT){
-              Z[[tt]] = procrustes(Z00[[tt]],C[[tt]],Z[[tt]]) 
-          }
-    }
+ #   if(prTransformed==TRUE){
+ #          for(tt in 1:TT){
+ #             Z[[tt]] = procrustes(Z00[[tt]],C[[tt]],Z[[tt]]) 
+ #         }
+  #  }
     return(list(Z = Z,acc = acc,llikOld = llikOld))
 }
 
