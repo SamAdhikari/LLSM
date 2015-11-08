@@ -1,10 +1,11 @@
 llsmRWCOV <-
 function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL, 
                       tuneIn = TRUE, dd, niter)
-{
-    
+{    
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
+    if(is.null(X)){
+	pp = 1}else(pp = dim(X[[1]])[3])
     gList = getIndicesYY(Y,TT,nn)$gg
     C = lapply(1:TT,function(tt){
         diag(nn[tt]) - (1/nn[tt]) * array(1, dim = c(nn[tt],nn[tt]))})
@@ -18,9 +19,19 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
     Z00 = lapply(1:TT,function(tt)C[[tt]]%*%Z0[[tt]])
     
     if(is.null(X)){
-        X= lapply(1:TT,function(x)array(0,dim=c(nn[x],nn[x],1)))
-    }
-    pp = dim(X[[1]])[3]
+        XX= lapply(1:TT,function(x)array(0,dim=c(nn[x],nn[x])))
+    }else{
+	    XX = list()	
+	    for(tt in 1:TT){
+		XX[[tt]] = array(0,dim=c(nn[tt]*pp,nn[tt]))
+		a = 1
+		b = nn[tt]
+		for(ll in 1:pp){
+		    XX[[tt]][a:b,] = X[[tt]][,,ll]
+		    a = b + 1
+		    b = b + nn[tt]
+		} }    }
+
     #Priors
     if(is.null(priors)){
         MuInt= 0 
@@ -82,7 +93,7 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         while(do.again ==1){
             print('Tuning the Sampler')
             for(counter in 1:a.number ){                
-                rslt = MCMCsampleRWCOV(niter = 200,Y=Y,Z=Z0,X=X,Intercept=Intercept0,
+                rslt = MCMCsampleRWCOV(niter = 200,Y=Y,Z=Z0,X=XX,Intercept=Intercept0,
                                   Beta=Beta0,TT=TT,dd=dd,nn=nn,pp=pp,
                                   MuInt=MuInt,VarInt=VarInt,
                                   VarZ=VarZ,accZ=accZ,accInt=accInt,
@@ -103,7 +114,7 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
         }
         print("Tuning is finished")  
     }
-    rslt = MCMCsampleRWCOV(niter = niter,Y=Y,Z=Z0,X=X,Intercept=Intercept0,
+    rslt = MCMCsampleRWCOV(niter = niter,Y=Y,Z=Z0,X=XX,Intercept=Intercept0,
                       Beta=Beta0,TT=TT,dd=dd,nn=nn,pp=pp,
                       MuInt=MuInt,VarInt=VarInt,
                       VarZ=VarZ,accZ=accZ,accInt=accInt,

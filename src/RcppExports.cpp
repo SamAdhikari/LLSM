@@ -50,6 +50,43 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FullLogLikCOV
+double FullLogLikCOV(arma::mat YY, arma::mat ZZ, arma::mat XX, arma::vec Beta, double intercept, int nn, int dd, int pp);
+RcppExport SEXP LLSM_FullLogLikCOV(SEXP YYSEXP, SEXP ZZSEXP, SEXP XXSEXP, SEXP BetaSEXP, SEXP interceptSEXP, SEXP nnSEXP, SEXP ddSEXP, SEXP ppSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type YY(YYSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type ZZ(ZZSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type XX(XXSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Beta(BetaSEXP);
+    Rcpp::traits::input_parameter< double >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< int >::type nn(nnSEXP);
+    Rcpp::traits::input_parameter< int >::type dd(ddSEXP);
+    Rcpp::traits::input_parameter< int >::type pp(ppSEXP);
+    __result = Rcpp::wrap(FullLogLikCOV(YY, ZZ, XX, Beta, intercept, nn, dd, pp));
+    return __result;
+END_RCPP
+}
+// likelihoodiCOV
+double likelihoodiCOV(int ii, int dd, int nn, int pp, arma::mat Yt, arma::mat Xt, arma::mat Zt, double intercept, arma::vec Beta);
+RcppExport SEXP LLSM_likelihoodiCOV(SEXP iiSEXP, SEXP ddSEXP, SEXP nnSEXP, SEXP ppSEXP, SEXP YtSEXP, SEXP XtSEXP, SEXP ZtSEXP, SEXP interceptSEXP, SEXP BetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< int >::type ii(iiSEXP);
+    Rcpp::traits::input_parameter< int >::type dd(ddSEXP);
+    Rcpp::traits::input_parameter< int >::type nn(nnSEXP);
+    Rcpp::traits::input_parameter< int >::type pp(ppSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Yt(YtSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Xt(XtSEXP);
+    Rcpp::traits::input_parameter< arma::mat >::type Zt(ZtSEXP);
+    Rcpp::traits::input_parameter< double >::type intercept(interceptSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type Beta(BetaSEXP);
+    __result = Rcpp::wrap(likelihoodiCOV(ii, dd, nn, pp, Yt, Xt, Zt, intercept, Beta));
+    return __result;
+END_RCPP
+}
 // varZero
 arma::mat varZero(arma::mat Phi, int TT, int dd, arma::mat Zvar);
 RcppExport SEXP LLSM_varZero(SEXP PhiSEXP, SEXP TTSEXP, SEXP ddSEXP, SEXP ZvarSEXP) {

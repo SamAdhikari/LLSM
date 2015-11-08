@@ -32,7 +32,7 @@ arma::mat distMat(int nn, int dd, arma::mat ZZ)
     for(kk = 0 ; kk < dd ; kk++){
     //    double VV = ZZ(ii+kk*nn) - ZZ(jj+kk*nn);
         double VV = ZZ(ii,kk) - ZZ(jj,kk);
- 		tmp = tmp + VV*VV;
+     	tmp = tmp + VV*VV;
 	}
     dMat(ii,jj) = sqrt(tmp);
     dMat(jj,ii) = sqrt(tmp);
@@ -153,6 +153,106 @@ double likelihoodi(int ii,int dd,int nn, arma::mat Yt,
     return lliki;
 }    
 
+
+
+
+// [[Rcpp::export]]
+double FullLogLikCOV(arma::mat YY, arma::mat ZZ,arma::mat XX,arma::vec Beta, 
+    double intercept,int nn,int dd, int pp){
+    arma::mat dMat = distMat(nn,dd,ZZ);
+	double total = 0.0;
+	double tmp1,tmp2;
+	for(int ii = 1; ii < nn; ii++){ //we exclude diagonal elements
+		for(int jj = 0; jj < ii; jj++){
+            double tmpVal1 = 0.0;
+	        double tmpVal2 = 0.0; 	
+             for(int kk = 0; kk < pp; kk++){
+                 double Xij = XX(ii+kk*nn,jj);
+                 double Xji = XX(jj+kk*nn,ii);
+				tmpVal1 = tmpVal1 + Beta(kk)*Xij;
+				tmpVal2 = tmpVal2 + Beta(kk)*Xji;
+			}
+            double vv1 = (intercept + tmpVal1 - dMat(ii,jj)); 
+    		double vv2 = (intercept + tmpVal2 - dMat(jj,ii));
+			tmp1 = logitInverse(vv1);
+			tmp2 = logitInverse(vv2);
+			if(R_IsNA(YY(ii,jj))){
+			    total = total + 0.0;
+			}else{
+			    if(YY(ii,jj) == 1){
+				total = total + log(tmp1);
+  			    }else if(YY(ii,jj) == 0){
+				total = total + log(1.0 - tmp1);
+			    }       }			
+			if(R_IsNA(YY(jj,ii))){
+			    total = total + 0.0;
+			}else{
+	 		    if(YY(jj,ii) == 1){
+				total = total + log(tmp2);
+			    }else if(YY(jj,ii) == 0){
+				total = total + log(1.0 - tmp2);
+			 }   
+			}
+		}		
+	}
+	return total;
+}
+
+
+           
+// [[Rcpp::export]]
+double likelihoodiCOV(int ii,int dd,int nn, int pp, arma::mat Yt,
+    arma::mat Xt,arma::mat Zt,double intercept,arma::vec Beta)
+{
+    ii = ii - 1.0;
+    double lliki = 0.0;
+    double pij,pji;
+    arma::mat dMat =  distMat(nn,dd,Zt);
+  //  dMat.print("dMat:");
+  //  #compute loglikelihood for the entries of Yt except the diagonal
+    for(int jj =0; jj < nn; jj++){
+        if(jj == ii){
+            lliki = lliki + 0.0;
+        }
+        if(jj != ii){                        
+	    double tmpVal1 = 0.0;
+	    double tmpVal2 = 0.0;
+             for(int kk = 0; kk < pp; kk++){
+    			tmpVal1 = tmpVal1 + Beta(kk)*Xt(ii+kk*nn,jj);
+			    tmpVal2 = tmpVal2 + Beta(kk)*Xt(jj+kk*nn,ii);
+			}
+            double vv1 = (intercept + tmpVal1 - dMat(ii,jj)); 
+    	    double vv2 = (intercept + tmpVal2 - dMat(jj,ii));
+			pij = logitInverse(vv1);
+			pji = logitInverse(vv2);
+//            double dij = dMat(ii,jj);
+//            //Rprintf("dij %f",dij,"\n");
+//            double v1 = intercept - dij;
+//            double pij = logitInverse(v1);
+            //Rprintf("pij %f",pij);
+        if(R_IsNA(Yt(ii,jj))){
+    		lliki = lliki + 0.0;
+	    }else{	
+             if(Yt(ii,jj) == 1){
+                lliki = lliki + (Yt(ii,jj))*log(pij);
+                }
+             if(Yt(ii,jj) == 0){
+                lliki = lliki + (1-Yt(ii,jj))*log(1-pij);
+                }
+		}
+	    if(R_IsNA(Yt(jj,ii))){
+		    lliki = lliki + 0.0;
+	    }else{	
+	        if(Yt(jj,ii) == 1){
+        	    lliki = lliki + (Yt(jj,ii)*log(pji));
+                }
+                if(Yt(jj,ii) == 0){
+                    lliki = lliki + (1-Yt(jj,ii))*log(1-pji);
+                }   
+           }
+        } }
+    return lliki;
+}    
 // [[Rcpp::export]]
 arma::mat varZero(arma::mat Phi,int TT, int dd,arma::mat Zvar){
     arma::mat PhiKr = kron(Phi,Phi); //Kronecker product of Phi
@@ -656,4 +756,3 @@ List MCMCcppLSM(arma::mat Y,arma::mat Z,double Intercept,int nn,int dd,int niter
         Named("accZ") = accZ
         );
 }
-

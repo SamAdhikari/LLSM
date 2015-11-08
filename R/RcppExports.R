@@ -13,6 +13,14 @@ likelihoodi <- function(ii, dd, nn, Yt, Zt, intercept) {
     .Call('LLSM_likelihoodi', PACKAGE = 'LLSM', ii, dd, nn, Yt, Zt, intercept)
 }
 
+FullLogLikCOV <- function(YY, ZZ, XX, Beta, intercept, nn, dd, pp) {
+    .Call('LLSM_FullLogLikCOV', PACKAGE = 'LLSM', YY, ZZ, XX, Beta, intercept, nn, dd, pp)
+}
+
+likelihoodiCOV <- function(ii, dd, nn, pp, Yt, Xt, Zt, intercept, Beta) {
+    .Call('LLSM_likelihoodiCOV', PACKAGE = 'LLSM', ii, dd, nn, pp, Yt, Xt, Zt, intercept, Beta)
+}
+
 varZero <- function(Phi, TT, dd, Zvar) {
     .Call('LLSM_varZero', PACKAGE = 'LLSM', Phi, TT, dd, Zvar)
 }

@@ -1,5 +1,5 @@
 ZupdateRWCOV <-
-function(Y,Z,TT,X,Intercept,Beta,dd,var,llikOld,acc,tune)
+function(Y,Z,TT,X,Intercept,Beta,dd,nn,pp,var,llikOld,acc,tune)
 {
     nn = sapply(1:TT,function(x)dim(Y[[x]])[1])
     for(tt in 1:TT){
@@ -17,8 +17,8 @@ function(Y,Z,TT,X,Intercept,Beta,dd,var,llikOld,acc,tune)
                 #propose new vector
                 Znewsm = Zsmt+tune[[tt]][i]*rnorm(dd,0,1)  
                 Znew[i,] = Znewsm
-                llikNew = likelihoodiCOV(i,Y[[tt]],Znew,
-                                         Intercept,XX=XX,Beta=Beta[,tt]) 
+                llikNew = likelihoodiCOV(ii=i,dd=dd,nn=nn[tt],pp=pp,Yt=Y[[tt]],
+			Zt=Znew,intercept=Intercept,Xt=XX,Beta=Beta[,tt]) 
                 priorNew1 = Zprior(Znewsm,ZsmPrev,var)
                 if(length(which(dimnames(Z[[tt+1]])[[1]]==nameList[i]))>0){
                     #        print(1)
@@ -61,8 +61,8 @@ function(Y,Z,TT,X,Intercept,Beta,dd,var,llikOld,acc,tune)
                     priorNew1 = Zprior(Znewsm,ZsmPrev,var)
                     Znew[i,] = Znewsm
                     #compute likelihood
-                    llikNew = likelihoodiCOV(i,Y[[tt]],Znew,
-                                             Intercept,XX=XX,Beta=Beta[,tt])
+                    llikNew =likelihoodiCOV(ii=i,dd=dd,nn=nn[tt],pp=pp,Yt=Y[[tt]],
+			Zt=Znew,intercept=Intercept,Xt=XX,Beta=Beta[,tt])
                     if(length(which(dimnames(Z[[tt+1]])[[1]]==nameList[i]))>0){
                         ZsmNext = Z[[tt+1]][paste(nameList[i]),] 
                         prior2 = Zprior(ZsmNext,Zsmt,var)     
@@ -102,8 +102,8 @@ function(Y,Z,TT,X,Intercept,Beta,dd,var,llikOld,acc,tune)
                 priorNew1 = Zprior(Znewsm,ZsmPrev,var)
                 Znew[i,] = Znewsm
                 #loglikelihood at new value
-                llikNew = likelihoodiCOV(i,Y[[tt]],Znew,
-                                         Intercept,XX=XX,Beta=Beta[,tt])
+                llikNew =likelihoodiCOV(ii=i,dd=dd,nn=nn[tt],pp=pp,Yt=Y[[tt]],
+			Zt=Znew,intercept=Intercept,Xt=XX,Beta=Beta[,tt])
                 #compute logratio
                 logratio = llikNew-llikOld[[tt]][i]+priorNew1-prior1
                 if(!is.na(logratio)){
