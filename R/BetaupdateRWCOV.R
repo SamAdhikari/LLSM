@@ -7,7 +7,7 @@ function(Intercept,llikAll,MuBeta,VarBeta,tune,acc,Y,Z,TT,X,Beta,nn,dd,pp)
             BetaNew[kk] = Beta[kk,tt] + tune[kk,tt]*rnorm(1,0,1)
             #compute loglikelihood at proposed value
             llikNew = FullLogLikCOV(YY=Y[[tt]],ZZ=Z[[tt]], XX=X[[tt]],
-		 Beta=BetaNew, intercept=Intercept,nn=nn[tt], dd=dd, pp=pp)
+		 Beta=BetaNew, intercept=Intercept,nn=nn[tt], dd=dd, pp=pp)	
             #log prior at current value
             priorOld = betaprior(Beta[kk,tt], MuBeta, VarBeta)
             #log prior at new value
