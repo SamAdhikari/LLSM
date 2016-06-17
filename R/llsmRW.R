@@ -1,3 +1,27 @@
+#' @title Function to run MCMC sampler for the LLSM-RW model
+#'
+#' @description
+#' \code{llsmRW} runs MCMC sampler for the LLSM-RW model.
+#'
+#' @details
+#' \code{llsmRW} runs MCMC sampler for the LLSM-RW model and returns samples from the posteriors chains of the parameters,
+#' the posterior likelihood at the accpeted parameters, a list of acceptance rates from the metropolis hastings sampling, 
+#' and a list of the tuning values if \code{tuneIn} is set to TRUE
+#'
+#' @param Y A list of sociomatrix for observed networks
+#' @param initialVals A list of values for initializing the chain for \code{intercept} and \code{ZZ}. Default is set to NULL, 
+#' when random initialization is used. 
+#' @param priors A list of parameters for prior distribution specified as \code{MuBeta}, \code{VarBeta}, \code{VarZ}, 
+#' \code{A} and \code{B}
+#' If set to NULL, default priors is used
+#' @param tune A list of tuning parameters. If set to NULL, default values are used.
+#' @param tuneIn Logical option to specify whether to auto tune the chain or not. Default is \code{TRUE}
+#' @param dd Dimension of the latent space
+#' @param niter Number of MCMC iterations to run
+#'
+#' @aliases llsmRWCov
+#' @export
+
 llsmRW = function(Y,initialVals = NULL, priors = NULL, tune = NULL, 
                       tuneIn = TRUE, dd, niter)
 {

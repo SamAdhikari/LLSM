@@ -38,13 +38,13 @@ lsmCOV = function(Y,X=NULL,initialVals=NULL,priors=NULL,tune=NULL,
         ZZ = array(NA,dim=c(nn,dd))    
         Z0 = ZZ    	         
         Intercept0  = rnorm(1, 0,1)
-        Beta0 = rnorm(pp,0,1)
+        Beta0 = matrix(rnorm(pp,0,1))
         print("Starting Values Set")
     }else{
         if(class(initialVals)!= 'list')(stop("initialVals must be of class list, if not NULL"))
         Z0 = initialVals$ZZ
-        intercept0 = initialVals$intercept
-        Beta0 = initialVals$Beta
+        Intercept0 = initialVals$intercept
+        Beta0 = matrix(initialVals$Beta)
     }
     g = graph.adjacency(Y);
     ss = shortest.paths(g);
@@ -53,7 +53,7 @@ lsmCOV = function(Y,X=NULL,initialVals=NULL,priors=NULL,tune=NULL,
     ##Centering matrix
     C = (diag(nn) - (1/nn) * array(1, dim = c(nn,nn))) 
     ##projection matrix
-    Z00 = C %*% Z 
+    Z00 = C %*% Z0 
     ###tuning parameters#####
     if(is.null(tune)){
         a.number = 5
@@ -77,7 +77,7 @@ lsmCOV = function(Y,X=NULL,initialVals=NULL,priors=NULL,tune=NULL,
         while(do.again ==1){
             print('Tuning the Sampler')
             for(counter in 1:a.number ){                
-                rslt = MCMCsamplelsmCOV(niter = 200,Y=YY,Z=Z0,X=XX,Intercept=Intercept0,
+                rslt = MCMCsampleLSMCOV(niter = 200,Y=YY,Z=Z0,X=XX,Intercept=Intercept0,
                                         Beta=Beta0,dd=dd,nn=nn,pp=pp,
                                         MuInt=MuInt,VarInt=VarInt,
                                         VarZ=VarZ,accZ=accZ,accInt=accInt,
@@ -94,7 +94,7 @@ lsmCOV = function(Y,X=NULL,initialVals=NULL,priors=NULL,tune=NULL,
         }
         print("Tuning is finished")  
     }
-    rslt = MCMCsamplelsmCOV(niter = niter,Y=YY,Z=Z0,X=XX,Intercept=Intercept0,
+    rslt = MCMCsampleLSMCOV(niter = niter,Y=YY,Z=Z0,X=XX,Intercept=Intercept0,
                             Beta=Beta0,dd=dd,nn=nn,pp=pp,
                             MuInt=MuInt,VarInt=VarInt,
                             VarZ=VarZ,accZ=accZ,accInt=accInt,
@@ -117,7 +117,7 @@ lsmCOV = function(Y,X=NULL,initialVals=NULL,priors=NULL,tune=NULL,
         return(zfinal)})    
     rslt$draws$ZZ = Ztransformed
     rslt$call = match.call()
-    rslt$tune = list(tuneZ = tuneZ, tuneInt = tuneInt)
+    rslt$tune = list(tuneZ = tuneZ, tuneInt = tuneInt,tuneBeta=tuneBeta)
     class(rslt) = 'LLSM'
     rslt       
 }

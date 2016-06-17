@@ -1,0 +1,11 @@
+library(Rcpp)
+library(RcppArmadillo)
+library(LLSM)
+version
+version('LLSM')
+version(LLSM)
+?LLSM
+library(LLSM)
+?LLSM
+?LLSM
+q('no')

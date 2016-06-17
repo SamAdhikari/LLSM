@@ -1,3 +1,15 @@
+#' @title Function to get the posterior Mode of the latent space positions at each time point
+#'
+#' @description
+#' \code{getModeLS} returns the posterior Mode of the MCMC chain the latent space positions 
+#' at fixed time point
+#'
+#' @details
+#' \code{getModeLS} returns the posterior Mode of the MCMC chain the latent space positions 
+#' at fixed time point. Current version of \code{getModeLS} works for 2-dimensional latent space only
+#' @param latent.space.pos matrix of dimension n by d by K, where K is the length of the chain
+#' @export
+
 getModeLS <-
 function(latent.space.pos)
     {

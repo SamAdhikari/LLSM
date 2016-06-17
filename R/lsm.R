@@ -1,9 +1,34 @@
-
+#' @title Function to run MCMC sampler in the LSM model for a static network.
+#'
+#' @description
+#' \code{lsm} runs MCMC sampler in the LSM model for a static network.
+#'
+#' @details
+#' \code{lsm} runs MCMC sampler for the LSM model of Hoff(2001) and returns samples from the posteriors chains of the parameters,
+#' the posterior likelihood at the accpeted parameters, a list of acceptance rates from the metropolis hastings sampling, 
+#' and a list of the tuning values if \code{tuneIn} is set to TRUE
+#'
+#' @param Y A sociomatrix for observed network
+# @param Y1 A sociomatrix of the reference network that we want to use as a target for Procrustes transformation. If set to NULL (default), \code{Y1} = \code{Y}.
+#' @param initialVals A list of values for initializing the chain for \code{intercept} and \code{ZZ}. Default is set to NULL, 
+#' when random initialization is used. 
+#' @param priors A list of parameters for prior distribution specified as \code{MuBeta}, \code{VarBeta}, \code{VarZ}, 
+#' \code{A} and \code{B}
+#' If set to NULL, default priors is used
+#' @param tune A list of tuning parameters. If set to NULL, default values are used.
+#' @param tuneIn Logical option to specify whether to auto tune the chain or not. Default is \code{TRUE}
+#' @param dd Dimension of the latent space
+#' @param niter Number of MCMC iterations to run
+#'
+#' @aliases lsmCOV
+#' @export
+#' @import igraph MASS mvtnorm
 
 ##Set Starting Values
-lsm = function(Y,Y1,initialVals = NULL, priors = NULL, tune = NULL, 
+lsm = function(Y,Y1=NULL,initialVals = NULL, priors = NULL, tune = NULL, 
                       tuneIn = TRUE, dd, niter)
 {
+	if(is.null(Y1)){Y1 = Y}
     nn = nrow(Y)
     YY = Y
     #Priors
@@ -11,8 +36,6 @@ lsm = function(Y,Y1,initialVals = NULL, priors = NULL, tune = NULL,
         MuInt= 0 
         VarInt = 1000
         VarZ = diag(10,dd)
- #       dof = 4
-#        Psi = diag(5,dd)
         A = 10
         B = 10
     }else{

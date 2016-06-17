@@ -1,5 +1,5 @@
 BetaupdateLSMCOV = function(Intercept,llikAll,MuBeta,
-                        VarBeta,tune,acc,Y,Z,X,Beta,dd=dd,pp=pp)
+                        VarBeta,tune,acc,Y,Z,X,Beta,dd,pp,nn)
 {
     #propose new value for intercept
     BetaNew = Beta

@@ -3,10 +3,10 @@
 #'	with AR evolution on Latent Space	
 #'
 #' @description
-#' \code{LLSMfullCondAR} runs and tunes MCMC sampler
+#' \code{llsmAR} runs and tunes MCMC sampler
 #' on the network data
 #'
-#' @param Y list of sociomatrices
+#' @param Y list of sociomatrices for longitudinal network data
 #' @param initialVals List of initialization
 #' 		use default if NULL
 #' @param priors List of prior specification 
@@ -16,7 +16,7 @@
 #' @param niter Number of iterations for MCMC run
 #' @param prTransformed Logical to indicate if procrustes transformation
 #' 		is to be done during sampling of latent positions
-#
+#' @export
 llsmAR =
 function(Y,initialVals = NULL,
                           priors = NULL, tune = NULL, 
@@ -25,7 +25,8 @@ function(Y,initialVals = NULL,
 {
     nn = sapply(1:length(Y),function(x) nrow(Y[[x]]))
     TT = length(Y) #number of time steps
-    YY = Y
+ #   YY = Y
+    ##In case there is missingness in YY
     YYIndices = getIndicesYY(Y,TT,nn)
     gList = YYIndices$gg
     posPrev = YYIndices$posPrev
@@ -39,8 +40,8 @@ function(Y,initialVals = NULL,
         MuPhi = 0
      #   dof = 4
      #   Psi = diag(1,dd)
-     dof = 10
-     Psi = 10
+     A = 10
+     B = 150
     }else{
         if(class(priors) != 'list')(
             stop("priors must be of class list, if not NULL"))
@@ -49,8 +50,8 @@ function(Y,initialVals = NULL,
         MuPhi = priors$MuPhi
         VarPhi = priors$VarPhi
         VarZ = priors$VarZ
-        dof = priors$dof
-        Psi = priors$Psi
+        A = priors$A
+        B = priors$B
     }
     ##starting values
     if(is.null(initialVals)){
@@ -60,7 +61,7 @@ function(Y,initialVals = NULL,
             ZZ = array(NA,dim=c(nn[i],dd))	
             Z0[[i]] = ZZ		 
         }
-        Intercept0  = rnorm(1, 0,1)
+        Intercept0  = 0
         Phi0 = diag(runif(dd,-1,1),dd)
         print("Starting Values Set")
     }else{
@@ -75,9 +76,9 @@ function(Y,initialVals = NULL,
         g = graph.adjacency(Y[[tt]]);
         ss = shortest.paths(g);
         ss[ss > 4] = 4;
-        Z0 = cmdscale(ss,k = dd);
-	dimnames(Z0)[[1]] = dimnames(YY[[tt]])[[1]];
-        return(Z0)})
+        Z0tt = cmdscale(ss,k = dd);
+	dimnames(Z0tt)[[1]] = dimnames(Y[[tt]])[[1]];
+        return(Z0tt)})
     #     ##Centering matrix
     C = lapply(1:TT,function(tt)(diag(nn[tt])-(1/nn[tt])*array(1, dim = c(nn[tt],nn[tt])))) 
     #     ##projection matrix
@@ -86,21 +87,20 @@ function(Y,initialVals = NULL,
     if(is.null(tune)){
         a.number = 5
         tuneInt = 1
-        tunePhi = rep(0.75,dd*dd)
-        #tunePhi = 0.75
+    #    tunePhi = rep(1,dd*dd)
         tuneZ =  lapply(1:TT, function(x) rep(1.2,nn[x]))          
     } else{
         if(class(tune) != 'list')(
             stop("tune must be of class list, if not NULL"))
-        a.number = 1
+        a.number = 5
         tuneInt = tune$tuneInt
         tuneZ = tune$tuneZ
-        tunePhi = tune$tunePhi
+     #   tunePhi = tune$tunePhi
     }    
     accZ = lapply(1:TT,function(x)rep(0,nn[x]))
     accInt = 0
-    accPhi = rep(0,dd*dd)   
-    #    accPhi = 0
+  #  accPhi = rep(0,dd*dd)   
+      accPhi = 0
     accSigma = rep(0,dd)
     ###tuning the Sampler####
     do.again = 1
@@ -109,8 +109,8 @@ function(Y,initialVals = NULL,
         while(do.again ==1){
             print('Tuning the Sampler')
             for(counter in 1:a.number ){
-                rslt = MCMCsampleAR(niter = 200,
-                                  Y=YY,Z=Z0,Z00=Z00,C=C,
+                rslt = MCMCsampleAR(niter = 500,
+                                  Y=Y,Z=Z0,Z00=Z00,C=C,
                                   Intercept=Intercept0,
                                   Phi=Phi0,dd=dd,
                                   TT=TT,nn =nn,
@@ -119,14 +119,14 @@ function(Y,initialVals = NULL,
                                   MuPhi=MuPhi,
                                   VarPhi=VarPhi,
                                   VarZ=VarZ,
-                                  dof=dof,Psi=Psi,
+                                  dof=A,Psi=B,
                                   accZ=accZ,
                                   accInt=accInt,
                                   accPhi=accPhi,
                                   accSigma = accSigma,
                                   tuneZ=tuneZ,
                                   tuneInt=tuneInt,
-                                  tunePhi=tunePhi,
+                                 
                                   prTransformed=prTransformed,
                                   gList=gList,
 				  posPrev= posPrev,posNext=posNext)  
@@ -134,10 +134,10 @@ function(Y,initialVals = NULL,
                 tuneZ = lapply(1:TT,function(x){
                     adjust.my.tune(tuneZ[[x]], 
                                    rslt$acc$accZ[[x]], 2)})
-                tuneInt = adjust.my.tune(tuneInt,
-                                         rslt$acc$accInt, 1)
-                tunePhi = adjust.my.tune(tunePhi,
-                                         rslt$acc$accPhi,1)
+             #   tuneInt = adjust.my.tune(tuneInt,
+            #                             rslt$acc$accInt, 1)
+             #   tunePhi = adjust.my.tune(tunePhi,
+            #                             rslt$acc$accPhi,1)
                 print(paste('TuneDone = ',tuneX))
                 tuneX = tuneX+1
             }
@@ -148,7 +148,7 @@ function(Y,initialVals = NULL,
         print("Tuning is finished")  
     }
     rslt = MCMCsampleAR(niter=niter,
-                      Y=YY,Z=Z0,Z00=Z00,C=C,
+                      Y=Y,Z=Z0,Z00=Z00,C=C,
                       Intercept=Intercept0,
                       Phi=Phi0,
                       dd=dd,TT=TT,nn=nn,
@@ -157,24 +157,18 @@ function(Y,initialVals = NULL,
                       MuPhi=MuPhi,
                       VarPhi=VarPhi,
                       VarZ=VarZ,
-                      dof=dof,Psi=Psi,
+                      dof=A,Psi=B,
                       accZ=accZ,
                       accSigma = accSigma,
                       accInt=accInt,
                       accPhi=accPhi,                      
                       tuneZ=tuneZ,
                       tuneInt=tuneInt,
-                      tunePhi=tunePhi,
+                   
                       prTransformed=prTransformed,
                       gList=gList,posPrev=posPrev,posNext=posNext)
     ##Procrustean transformation of latent positions if prTransformed == FALSE within MCMC
     if(prTransformed == FALSE){
-   #     g = graph.adjacency(Y[[1]])  #using MDS of dis-similarity matrix of observed network at time 1
-   #     ss = shortest.paths(g)
-   #     ss[ss > 4] = 4
-   #     Z0 = cmdscale(ss,k = 2)
-   #     C = (diag(nn[1])-(1/nn[1])*array(1,dim = c(nn[1],nn[1])))  ##Centering matrix
-   #     Z00 = C %*% Z0 ##target matrix
         Ztransformed = lapply(1:(niter), function(ii){
             lapply(1:TT,function(tt){
                 z=rslt$draws$Z[[ii]][[tt]];
@@ -185,11 +179,10 @@ function(Y,initialVals = NULL,
                 zfinal = z%*%tx
                 return(zfinal)})})
         rslt$draws$ZZ = Ztransformed
-    }    
+    }  else(rslt$draws$ZZ = rslt$draws$Z)  
     rslt$call = match.call()
     rslt$tune = list(tuneZ=tuneZ,
-                     tuneInt=tuneInt,
-                     tunePhi=tunePhi)
+                     tuneInt=tuneInt)
     class(rslt) = 'LLSM'
     rslt       
 }

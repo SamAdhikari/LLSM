@@ -1,4 +1,16 @@
-library(MASS)
+#' @title Helper function to get the samples from the posterior chain of the parameter after burnin and thining 
+#'
+#' @description
+#' \code{getIntercept} returns the samples from the posterior chain of the parameter after burnin and thining
+#'
+#' @details
+#'
+#' @param object object of class LLSM returned from either \code{lsm}, \code{lsmCOV}, 
+#' \code{llsmRW}, \code{llsmRWcov} or \code{llsmAR}.
+#' @param burnin number of samples from the posterior chain that needs to be discarded
+#' @param thin argument specifying the thinin parameter for the chain
+#' @aliases getLikelihood getLSlsm getLS getPhi getSigma
+
 
 getBeta = function(object, burnin = 0, thin = 1){
 	xx = object$draws$Beta
@@ -64,12 +76,12 @@ getIntercept = function(object, burnin = 0, thin = 1){
 
 
 
-getAlpha = function(object, burnin = 0, thin = 1){
-	xx = object$draws$Alpha
-	nn = length(xx)
-	dd = seq((burnin+1), nn, thin)
-	return(xx[dd]) 
-}
+#getAlpha = function(object, burnin = 0, thin = 1){
+#	xx = object$draws$Alpha
+#	nn = length(xx)
+#	dd = seq((burnin+1), nn, thin)
+#	return(xx[dd]) 
+#}
 
 
 
@@ -77,7 +89,7 @@ getAlpha = function(object, burnin = 0, thin = 1){
 #getting the latent positions and plotting them
 getLS = function(object,burnin=0,thin=1)
 {
-    xx = object$draws$Z
+    xx = object$draws$ZZ
     nn = length(xx)
     dd = seq((burnin + 1), nn, thin)
     kk = length(xx[[1]])

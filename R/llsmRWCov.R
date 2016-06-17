@@ -1,3 +1,28 @@
+#' @title Function to run MCMC sampler for the LLSM-RW model
+#'
+#' @description
+#' \code{llsmRWCOV} runs MCMC sampler for the LLSM-RW model.
+#'
+#' @details
+#' \code{llsmRW} runs MCMC sampler for the LLSM-RW model and returns samples from the posteriors chains of the parameters,
+#' the posterior likelihood at the accpeted parameters, a list of acceptance rates from the metropolis hastings sampling, 
+#' and a list of the tuning values if \code{tuneIn} is set to TRUE
+#'
+#' @param Y A list of sociomatrix for observed networks
+#' @param initialVals A list of values for initializing the chain for \code{intercept} and \code{ZZ}. Default is set to NULL, 
+#' when random initialization is used. 
+#' @param priors A list of parameters for prior distribution specified as \code{MuBeta}, \code{VarBeta}, \code{VarZ}, 
+#' \code{A} and \code{B}
+#' If set to NULL, default priors is used
+#' @param tune A list of tuning parameters. If set to NULL, default values are used.
+#' @param tuneIn Logical option to specify whether to auto tune the chain or not. Default is \code{TRUE}
+#' @param dd Dimension of the latent space
+#' @param niter Number of MCMC iterations to run
+#'
+#' @aliases llsmRW
+#' @export
+
+
 llsmRWCOV <-
 function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL, 
                       tuneIn = TRUE, dd, niter)
@@ -65,7 +90,7 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
     }else{
         if(class(initialVals)!= 'list')(stop("initialVals must be of class list, if not NULL"))
         Z0 = initialVals$ZZ
-        intercept0 = initialVals$intercept
+        Intercept0 = initialVals$intercept
         Beta0 = initialVals$Beta
     }
     
@@ -105,7 +130,6 @@ function(Y,X=NULL,initialVals = NULL, priors = NULL, tune = NULL,
                 tuneBeta = sapply(1:TT,function(x){sapply(1:pp,function(y){
 			adjust.my.tune(tuneBeta[y,x],rslt$acc$accBeta[y,x],1)})})
 		if(pp ==1){tuneBeta = t(matrix(tuneBeta))}
-		print(tuneBeta)
                 print(paste('TuneDone = ',tuneX))
                 tuneX = tuneX+1
             }

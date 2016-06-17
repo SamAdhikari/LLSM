@@ -35,7 +35,7 @@ MCMCsampleLSMCOV = function(niter,Y,Z,X,Intercept,Beta,dd,nn,pp,MuInt,VarInt,Var
         #update Z
         for(i in 1:nn){
             llikOld[i] =likelihoodiCOV(ii=i,dd=dd,nn=nn,pp=pp,Yt=Y,
-                                       Zt=Z,intercept=Intercept,Xt=XX,Beta=Beta)        
+                                       Zt=Z,intercept=Intercept,Xt=X,Beta=Beta)        
         }
         Zupdt = ZupdateLSMCOV(Y=Y,Z=Z,X=X,Intercept=Intercept,Beta=Beta,dd=dd,nn=nn,pp=pp,
                         var=VarZ,llikOld=llikOld,acc=accZ,tune=tuneZ)        
